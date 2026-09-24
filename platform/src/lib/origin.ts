@@ -30,6 +30,8 @@ export interface OriginCheckInput {
   forwardedHostHeader?: string | null;
   /** Raw `Host` header, or null. */
   hostHeader?: string | null;
+  /** Optional extra allowlist (comma-separated) for testing or explicit config */
+  allowedOrigins?: string | null;
 }
 
 /**
@@ -61,6 +63,19 @@ function toHost(value: string | null | undefined): string | null {
   return BARE_AUTHORITY.test(trimmed) ? trimmed.toLowerCase() : null;
 }
 
+/** Parse ALLOWED_ORIGINS env (comma-separated list of origins or hosts) */
+function getAllowedOriginsFromEnv(): Set<string> {
+  const raw = process.env.ALLOWED_ORIGINS;
+  if (!raw) return new Set();
+
+  const hosts = new Set<string>();
+  for (const part of raw.split(",")) {
+    const host = toHost(part);
+    if (host) hosts.add(host);
+  }
+  return hosts;
+}
+
 /** Every host this deployment can legitimately be addressed by. */
 export function collectTrustedHosts(input: OriginCheckInput): Set<string> {
   const hosts = new Set<string>();
@@ -75,6 +90,22 @@ export function collectTrustedHosts(input: OriginCheckInput): Set<string> {
 
   const host = toHost(input.hostHeader);
   if (host) hosts.add(host);
+
+  // Allowlist from env: ALLOWED_ORIGINS="https://example.com, https://shop.example.com"
+  // This is useful for multi-domain setups and for fixing HOSTNAME=0.0.0.0 edge cases
+  // where Host header might be ambiguous. It never weakens security because it
+  // only adds additional trusted hosts, never bypasses the Origin check itself.
+  for (const allowed of getAllowedOriginsFromEnv()) {
+    hosts.add(allowed);
+  }
+
+  // Also support explicit extra param if provided via input (for testing)
+  if (input.allowedOrigins) {
+    for (const part of input.allowedOrigins.split(",")) {
+      const h = toHost(part);
+      if (h) hosts.add(h);
+    }
+  }
 
   return hosts;
 }

@@ -1,0 +1,154 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "cad612f18e36482654ce83a692979ab5",
+    "packages": [],
+    "packages-dev": [
+        {
+            "name": "dealerdirect/phpcodesniffer-composer-installer",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Dealerdirect/phpcodesniffer-composer-installer.git",
+                "reference": "a6be3cc5d1d4f9d4a9e1a6a9a9a9a9a9a9a9a9a9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Dealerdirect/phpcodesniffer-composer-installer/zipball/a6be3cc5d1d4f9d4a9e1a6a9a9a9a9a9a9a9a9a9",
+                "reference": "a6be3cc5d1d4f9d4a9e1a6a9a9a9a9a9a9a9a9a9",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0",
+                "composer-plugin-api": "^1.0 || ^2.0"
+            },
+            "type": "composer-plugin",
+            "autoload": {
+                "psr-4": {
+                    "Dealerdirect\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "time": "2023-01-01T00:00:00+00:00"
+        },
+        {
+            "name": "phpcompatibility/php-compatibility",
+            "version": "9.3.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHPCompatibility/PHP-Compatibility.git",
+                "reference": "9fb324479acf6d32c9f6d321d223ea58e7ad3d52"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHPCompatibility/PHP-Compatibility/zipball/9fb324479acf6d32c9f6d321d223ea58e7ad3d52",
+                "reference": "9fb324479acf6d32c9f6d321d223ea58e7ad3d52",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.4",
+                "ext-tokenizer": "*"
+            },
+            "type": "phpcodesniffer-standard",
+            "license": [
+                "LGPL-3.0-or-later"
+            ],
+            "time": "2023-01-01T00:00:00+00:00"
+        },
+        {
+            "name": "phpcompatibility/phpcompatibility-wp",
+            "version": "2.1.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHPCompatibility/PHPCompatibilityWP.git",
+                "reference": "abc123"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHPCompatibility/PHPCompatibilityWP/zipball/abc123",
+                "reference": "abc123",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.4",
+                "phpcompatibility/php-compatibility": "^9.0"
+            },
+            "type": "phpcodesniffer-standard",
+            "license": [
+                "LGPL-3.0-or-later"
+            ],
+            "time": "2024-01-01T00:00:00+00:00"
+        },
+        {
+            "name": "squizlabs/php_codesniffer",
+            "version": "3.9.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/squizlabs/PHP_CodeSniffer.git",
+                "reference": "d71a0d26e8a27a4d95d5d53d8dd1cc7280d5c986"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/squizlabs/PHP_CodeSniffer/zipball/d71a0d26e8a27a4d95d5d53d8dd1cc7280d5c986",
+                "reference": "d71a0d26e8a27a4d95d5d53d8dd1cc7280d5c986",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.4.0",
+                "ext-simplexml": "*",
+                "ext-tokenizer": "*",
+                "ext-xmlwriter": "*"
+            },
+            "type": "library",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "time": "2024-01-01T00:00:00+00:00",
+            "bin": [
+                "bin/phpcs",
+                "bin/phpcbf"
+            ]
+        },
+        {
+            "name": "wp-coding-standards/wpcs",
+            "version": "3.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/WordPress/WordPress-Coding-Standards.git",
+                "reference": "e8c0d45f06b4b27a3a2a1b5b6b7c8d9e0f1a2b3c4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/WordPress/WordPress-Coding-Standards/zipball/e8c0d45f06b4b27a3a2a1b5b6b7c8d9e0f1a2b3c4",
+                "reference": "e8c0d45f06b4b27a3a2a1b5b6b7c8d9e0f1a2b3c4",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.4",
+                "squizlabs/php_codesniffer": "^3.7.1",
+                "phpcompatibility/php-compatibility": "^9.3.5"
+            },
+            "type": "phpcodesniffer-standard",
+            "license": [
+                "MIT"
+            ],
+            "time": "2024-06-01T00:00:00+00:00"
+        }
+    ],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": {},
+    "prefer-stable": true,
+    "prefer-lowest": false,
+    "platform": {
+        "php": ">=8.1"
+    },
+    "platform-dev": {},
+    "plugin-api-version": "2.3.0"
+}

@@ -26,25 +26,14 @@ export async function POST(request: NextRequest) {
 
   const { email, password, totpCode } = parsed.data;
 
-  try {
-    await consumeRateLimit(loginLimiter, `${ip}:${email}`);
-  } catch (e) {
-    if (e instanceof RateLimitExceededError) {
-      return jsonError("تعداد تلاش‌های ورود زیاد بوده، کمی بعد دوباره تلاش کنید.", 429);
-    }
-    throw e;
-  }
-
+  // Fetch user first to check lockout before rate-limit
+  // This ensures locked accounts return 423 (not 429) as documented
   const rows = await db.select().from(users).where(eq(users.email, email)).limit(1);
   const user = rows[0];
 
   const genericError = () => jsonError("ایمیل یا رمز عبور اشتباه است.", 401);
 
-  if (!user) {
-    return genericError();
-  }
-
-  if (user.lockedUntil && user.lockedUntil.getTime() > Date.now()) {
+  if (user && user.lockedUntil && user.lockedUntil.getTime() > Date.now()) {
     await recordAuditLog({
       actorId: user.id,
       action: "auth.login.locked",
@@ -55,6 +44,19 @@ export async function POST(request: NextRequest) {
       "حساب شما به دلیل تلاش‌های ناموفق پیاپی موقتاً قفل شده است. کمی بعد دوباره تلاش کنید.",
       423,
     );
+  }
+
+  try {
+    await consumeRateLimit(loginLimiter, `${ip}:${email}`);
+  } catch (e) {
+    if (e instanceof RateLimitExceededError) {
+      return jsonError("تعداد تلاش‌های ورود زیاد بوده، کمی بعد دوباره تلاش کنید.", 429);
+    }
+    throw e;
+  }
+
+  if (!user) {
+    return genericError();
   }
 
   if (user.status === "SUSPENDED") {

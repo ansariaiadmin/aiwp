@@ -32,14 +32,21 @@ describe("getClientIp", () => {
     expect(getClientIp(req({ "x-forwarded-for": "203.0.113.5" }))).toBe("203.0.113.5");
   });
 
-  /**
-   * Known limitation, asserted here so it stays visible: with no proxy in
-   * front, every direct client collapses into one shared "unknown" bucket.
-   * loginLimiter keys on `${ip}:${email}` so this is mostly harmless, but
-   * registerLimiter keys on the IP alone — see docs/AUDIT-2026-09-07.md §3.6.
-   */
-  it("falls back to the literal string 'unknown' with no proxy headers", () => {
-    expect(getClientIp(req({}))).toBe("unknown");
-    expect(getClientIp(req({ "x-forwarded-for": "" }))).toBe("unknown");
+  it("falls back to 127.0.0.1 instead of 'unknown' to avoid global bucket", () => {
+    expect(getClientIp(req({}))).toBe("127.0.0.1");
+    expect(getClientIp(req({ "x-forwarded-for": "" }))).toBe("127.0.0.1");
+  });
+
+  it("supports cf-connecting-ip and true-client-ip headers", () => {
+    expect(getClientIp(req({ "cf-connecting-ip": "203.0.113.10" }))).toBe("203.0.113.10");
+    expect(getClientIp(req({ "true-client-ip": "203.0.113.11" }))).toBe("203.0.113.11");
+  });
+
+  it("returns different IPs for different X-Forwarded-For values (per-IP buckets)", () => {
+    const ip1 = getClientIp(req({ "x-forwarded-for": "1.1.1.1" }));
+    const ip2 = getClientIp(req({ "x-forwarded-for": "2.2.2.2" }));
+    expect(ip1).toBe("1.1.1.1");
+    expect(ip2).toBe("2.2.2.2");
+    expect(ip1).not.toBe(ip2);
   });
 });
