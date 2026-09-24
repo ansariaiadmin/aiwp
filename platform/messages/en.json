@@ -1,0 +1,129 @@
+{
+  "common": {
+    "appName": "AiWp",
+    "appNameLong": "AiWp Platform",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "close": "Close",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "copy": "Copy",
+    "copied": "Copied",
+    "loading": "Loading…",
+    "retry": "Try again",
+    "yes": "Yes",
+    "no": "No",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "active": "Active",
+    "inactive": "Inactive",
+    "optional": "optional",
+    "required": "required",
+    "all": "All",
+    "none": "None",
+    "actions": "Actions",
+    "status": "Status",
+    "createdAt": "Created",
+    "updatedAt": "Updated",
+    "language": "Language",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "nav": {
+    "admin": {
+      "dashboard": "Dashboard",
+      "products": "Products",
+      "licenses": "Licenses",
+      "orders": "Orders",
+      "users": "Users",
+      "ai": "AI provider",
+      "knowledgeBase": "Knowledge base",
+      "sms": "SMS gateway",
+      "auditLog": "Audit log",
+      "generalSettings": "General settings"
+    },
+    "customer": {
+      "dashboard": "Dashboard",
+      "myLicenses": "My licenses",
+      "myOrders": "My orders",
+      "security": "Account security",
+      "profile": "Profile"
+    }
+  },
+  "state": {
+    "empty": "Nothing here yet.",
+    "emptyHint": "Try changing the filters.",
+    "error": "Something went wrong.",
+    "errorHint": "Please try again shortly.",
+    "noResults": "No results.",
+    "offline": "You are offline. Changes have not been saved.",
+    "backOnline": "Back online."
+  },
+  "kb": {
+    "title": "Knowledge base",
+    "subtitle": "The documents the model consults when answering.",
+    "corpusStatus": "Corpus status",
+    "corpusStatusHint": "What is indexed, and with which model.",
+    "documents": "{count} documents",
+    "chunks": "{count} chunks",
+    "embedded": "{count} embedded",
+    "pendingEmbedding": "{count} awaiting embedding",
+    "noData": "No data available.",
+    "localEmbedderWarning": "No embedding key is configured, so the local embedder is in use. Search is keyword-weighted and does not understand word meaning. Add an AI provider key for semantic search.",
+    "addDocument": "Add document",
+    "addDocumentHint": "A document with the same source key is replaced.",
+    "sourceKind": "Source kind",
+    "sourceKey": "Source key",
+    "titleField": "Title",
+    "url": "URL",
+    "body": "Body",
+    "bodyPlaceholder": "Paste the full document text here…",
+    "sourceKinds": {
+      "DOCS": "Documentation",
+      "SUPPORT": "Support",
+      "MARKETPLACE": "Marketplace",
+      "CHANGELOG": "Changelog",
+      "CODE": "Code",
+      "MANUAL": "Manual"
+    },
+    "saved": "Document saved.",
+    "saveFailed": "Could not save the document.",
+    "testRetrieval": "Test retrieval",
+    "testRetrievalHint": "You see exactly what the model sees.",
+    "searchPlaceholder": "e.g. how do I declare HPOS support?",
+    "noResultsFor": "No results for “{query}” — the corpus does not cover it. This is a relevance cutoff, not a broken search.",
+    "resultsFor": "{count} results for “{query}”",
+    "keywordOnly": "(keyword-weighted)",
+    "signal": {
+      "keyword": "keyword",
+      "vector": "semantic"
+    },
+    "searchFailed": "Search failed."
+  },
+  "money": {
+    "IRR": "Rial",
+    "IRT": "Toman"
+  },
+  "a11y": {
+    "skipToContent": "Skip to content",
+    "mainNavigation": "Main navigation",
+    "toggleLanguage": "Change language",
+    "toggleTheme": "Change theme",
+    "offlineBanner": "Offline notice"
+  },
+  "pwa": {
+    "installTitle": "Install AiWp as an app",
+    "installHint": "Faster access in a standalone window.",
+    "install": "Install",
+    "installed": "Installed. You can launch it from your app menu."
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "id": "blocks-compat",
+  "name": "WooCommerce Blocks Compatibility",
+  "version": "1.0.0",
+  "description": "Helpers for integrating with the WooCommerce Cart & Checkout Blocks (Store API extensions, ExtendSchema) safely, on top of the core FeaturesUtil declaration already done by the scaffold.",
+  "requires": [],
+  "conflicts": [],
+  "hooks": {
+    "actions": ["woocommerce_blocks_loaded"],
+    "filters": []
+  },
+  "options": [],
+  "placeholders": [],
+  "entryClass": "BlocksCompat",
+  "capabilities": [],
+  "woo": true
+}

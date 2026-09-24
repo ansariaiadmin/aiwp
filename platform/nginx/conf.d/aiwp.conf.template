@@ -1,0 +1,63 @@
+# AiWp Platform — Nginx reverse proxy + TLS termination.
+#
+# This is a TEMPLATE: copy it to nginx/conf.d/aiwp.conf and replace
+# ${DOMAIN} with your real domain before first boot (see
+# docs/DEPLOYMENT.md). It is kept as a .template so a fresh checkout never
+# accidentally ships a placeholder domain into a live nginx config.
+
+# Rate limit zone for login/register endpoints, defense-in-depth alongside
+# the application's own rate limiting (lib/rate-limit.ts).
+limit_req_zone $binary_remote_addr zone=auth_limit:10m rate=10r/m;
+
+server {
+    listen 80;
+    server_name ${DOMAIN};
+
+    # Let's Encrypt HTTP-01 challenge path.
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name ${DOMAIN};
+
+    ssl_certificate     /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache   shared:SSL:10m;
+    ssl_session_timeout 10m;
+
+    client_max_body_size 2m;
+
+    # Security headers are also set by the app itself (proxy.ts); these are
+    # a defense-in-depth duplicate at the edge in case the app is ever
+    # bypassed by a misconfigured route.
+    add_header X-Frame-Options "DENY" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location ~ ^/api/auth/(login|register|forgot-password) {
+        limit_req zone=auth_limit burst=5 nodelay;
+        proxy_pass http://app:3000;
+        include /etc/nginx/conf.d/proxy-common.inc;
+    }
+
+    location / {
+        proxy_pass http://app:3000;
+        include /etc/nginx/conf.d/proxy-common.inc;
+    }
+}

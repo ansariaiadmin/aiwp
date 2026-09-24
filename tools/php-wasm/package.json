@@ -1,0 +1,19 @@
+{
+  "name": "aiwp-php-runner",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Runs the PHP factory tools through a WebAssembly PHP build, for environments where installing a native PHP is not possible. On a normal dev machine use the real `php` binary instead.",
+  "type": "module",
+  "scripts": {
+    "php": "node run.mjs",
+    "validate": "node run.mjs ../../tools/validate.php ../../spec/examples/store-health.json",
+    "compose": "node run.mjs ../../tools/compose.php ../../spec/examples/store-health.json",
+    "build": "node run.mjs ../../tools/build.php ../../spec/examples/store-health.json",
+    "test": "node run.mjs ../../tools/tests/run-tests.php",
+    "test:integration": "node license-integration.mjs ../../build/store-health \"${AIWP_LICENSE_KEY:?set AIWP_LICENSE_KEY to a real key}\" \"${AIWP_PLATFORM_URL:-http://127.0.0.1:3000}\""
+  },
+  "dependencies": {
+    "@php-wasm/node": "^3.1.52",
+    "@php-wasm/universal": "^3.1.52"
+  }
+}

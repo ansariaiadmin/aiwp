@@ -1,0 +1,17 @@
+{
+  "id": "settings-page",
+  "name": "Settings Page Extras",
+  "version": "1.0.0",
+  "description": "Adds a 'Settings' link on the Plugins list screen and a guarded 'Reset settings' action on top of the core Settings scaffold.",
+  "requires": [],
+  "conflicts": [],
+  "hooks": {
+    "actions": ["admin_post_{{PREFIX}}_reset_settings"],
+    "filters": ["plugin_action_links_<plugin-basename>"]
+  },
+  "options": [],
+  "placeholders": [],
+  "entryClass": "SettingsPage",
+  "capabilities": ["manage_options"],
+  "woo": false
+}

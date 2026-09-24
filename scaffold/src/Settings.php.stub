@@ -1,0 +1,271 @@
+<?php
+/**
+ * Tabbed Settings API wrapper. Renders/sanitizes the fields declared in the
+ * plugin spec's "options" array (baked into module-manifest.php as
+ * SETTINGS_FIELDS) plus any fields modules contribute via the
+ * '{{PREFIX}}_settings_fields' filter.
+ *
+ * @package VendorPlugin
+ */
+
+declare(strict_types=1);
+
+namespace VendorPlugin;
+
+use VendorPlugin\Support\Guard;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+final class Settings {
+
+	private const OPTION_GROUP = '{{PREFIX}}_settings';
+	private const PAGE_SLUG    = '{{SLUG}}-settings';
+
+	/** @var array<int,array<string,mixed>>|null */
+	private static ?array $fields = null;
+
+	public function register(): void {
+		add_action( 'admin_menu', array( $this, 'add_menu' ) );
+		add_action( 'admin_init', array( $this, 'register_settings' ) );
+	}
+
+	public function add_menu(): void {
+		add_options_page(
+			esc_html__( '{{PLUGIN_NAME}}', '{{TEXT_DOMAIN}}' ),
+			esc_html__( '{{PLUGIN_NAME}}', '{{TEXT_DOMAIN}}' ),
+			'manage_options',
+			self::PAGE_SLUG,
+			array( $this, 'render_page' )
+		);
+	}
+
+	public function register_settings(): void {
+		register_setting(
+			self::OPTION_GROUP,
+			self::OPTION_GROUP,
+			array( 'sanitize_callback' => array( $this, 'sanitize' ) )
+		);
+
+		foreach ( $this->tabs() as $tab_id => $tab_label ) {
+			add_settings_section(
+				"{{PREFIX}}_section_{$tab_id}",
+				$tab_label,
+				'__return_false',
+				self::PAGE_SLUG . '_' . $tab_id
+			);
+		}
+
+		foreach ( self::fields() as $field ) {
+			add_settings_field(
+				$field['key'],
+				esc_html( $field['label'] ),
+				array( $this, 'render_field' ),
+				self::PAGE_SLUG . '_' . $field['tab'],
+				"{{PREFIX}}_section_{$field['tab']}",
+				$field
+			);
+		}
+	}
+
+	/**
+	 * @return array<string,string> tab id => tab label
+	 */
+	private function tabs(): array {
+		$tabs = array( 'general' => __( 'General', '{{TEXT_DOMAIN}}' ) );
+
+		foreach ( self::fields() as $field ) {
+			if ( ! isset( $tabs[ $field['tab'] ] ) ) {
+				$tabs[ $field['tab'] ] = ucwords( str_replace( array( '-', '_' ), ' ', $field['tab'] ) );
+			}
+		}
+
+		/**
+		 * Filters the settings tabs shown on the settings screen.
+		 *
+		 * @param array<string,string> $tabs tab id => label.
+		 */
+		return (array) apply_filters( '{{PREFIX}}_settings_tabs', $tabs );
+	}
+
+	/**
+	 * @return array<int,array<string,mixed>>
+	 */
+	private static function fields(): array {
+		if ( null !== self::$fields ) {
+			return self::$fields;
+		}
+
+		$manifest_fields = \VendorPlugin\Plugin::settings_fields();
+
+		/**
+		 * Filters the full list of settings fields. Modules can append
+		 * their own fields here instead of hardcoding a settings screen.
+		 *
+		 * @param array<int,array<string,mixed>> $fields
+		 */
+		self::$fields = (array) apply_filters( '{{PREFIX}}_settings_fields', $manifest_fields );
+
+		return self::$fields;
+	}
+
+	public function render_page(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$tabs       = $this->tabs();
+		$active_tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : (string) array_key_first( $tabs ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! isset( $tabs[ $active_tab ] ) ) {
+			$active_tab = (string) array_key_first( $tabs );
+		}
+		?>
+		<div class="wrap">
+			<h1><?php echo esc_html__( '{{PLUGIN_NAME}}', '{{TEXT_DOMAIN}}' ); ?></h1>
+			<h2 class="nav-tab-wrapper">
+				<?php foreach ( $tabs as $tab_id => $tab_label ) : ?>
+					<a
+						href="
+						<?php
+						echo esc_url(
+							add_query_arg(
+								array(
+									'page' => self::PAGE_SLUG,
+									'tab'  => $tab_id,
+								),
+								admin_url( 'options-general.php' )
+							)
+						);
+						?>
+								"
+						class="nav-tab <?php echo $active_tab === $tab_id ? 'nav-tab-active' : ''; ?>"
+					><?php echo esc_html( $tab_label ); ?></a>
+				<?php endforeach; ?>
+			</h2>
+			<form action="options.php" method="post">
+				<?php
+				settings_fields( self::OPTION_GROUP );
+				do_settings_sections( self::PAGE_SLUG . '_' . $active_tab );
+				submit_button();
+				?>
+			</form>
+		</div>
+		<?php
+	}
+
+	/**
+	 * @param array<string,mixed> $field
+	 */
+	public function render_field( array $field ): void {
+		$option = get_option( self::OPTION_GROUP, array() );
+		$value  = is_array( $option ) && isset( $option[ $field['key'] ] ) ? $option[ $field['key'] ] : ( $field['default'] ?? '' );
+		$name   = self::OPTION_GROUP . '[' . $field['key'] . ']';
+
+		switch ( $field['type'] ) {
+			case 'checkbox':
+				printf(
+					'<label><input type="checkbox" name="%1$s" value="1" %2$s /> %3$s</label>',
+					esc_attr( $name ),
+					checked( (bool) $value, true, false ),
+					esc_html( $field['description'] ?? '' )
+				);
+				break;
+
+			case 'select':
+				printf( '<select name="%s">', esc_attr( $name ) );
+				foreach ( (array) ( $field['choices'] ?? array() ) as $choice ) {
+					printf(
+						'<option value="%1$s" %2$s>%1$s</option>',
+						esc_attr( $choice ),
+						selected( $value, $choice, false )
+					);
+				}
+				echo '</select>';
+				break;
+
+			case 'textarea':
+				printf(
+					'<textarea name="%1$s" rows="4" class="large-text">%2$s</textarea>',
+					esc_attr( $name ),
+					esc_textarea( (string) $value )
+				);
+				break;
+
+			case 'password':
+				printf(
+					'<input type="password" name="%1$s" value="%2$s" class="regular-text" autocomplete="new-password" />',
+					esc_attr( $name ),
+					esc_attr( (string) $value )
+				);
+				break;
+
+			case 'number':
+				printf(
+					'<input type="number" name="%1$s" value="%2$s" class="small-text" />',
+					esc_attr( $name ),
+					esc_attr( (string) $value )
+				);
+				break;
+
+			case 'email':
+			case 'url':
+			case 'text':
+			default:
+				printf(
+					'<input type="%1$s" name="%2$s" value="%3$s" class="regular-text" />',
+					esc_attr( 'email' === $field['type'] ? 'email' : ( 'url' === $field['type'] ? 'url' : 'text' ) ),
+					esc_attr( $name ),
+					esc_attr( (string) $value )
+				);
+				break;
+		}
+	}
+
+	/**
+	 * @param mixed $input Raw settings array from $_POST via the Settings API.
+	 *
+	 * @return array<string,mixed>
+	 */
+	public function sanitize( $input ): array {
+		if ( ! Guard::current_user_can( 'manage_options' ) ) {
+			return (array) get_option( self::OPTION_GROUP, array() );
+		}
+
+		$input = is_array( $input ) ? $input : array();
+		$map   = array();
+
+		foreach ( self::fields() as $field ) {
+			$map[ $field['key'] ] = $field['type'];
+		}
+
+		return Guard::sanitize_array( $input, $map );
+	}
+
+	public static function get( string $key, mixed $fallback = null ): mixed {
+		// A site owner/host may define VPLUGIN_<KEY> in wp-config.php to
+		// override any setting without touching the database -- documented
+		// per-plugin in the generated .env.example-style note. Constants
+		// always win over the stored option, matching WordPress's own
+		// convention for e.g. DISALLOW_FILE_EDIT-style overrides.
+		$constant_name = 'VPLUGIN_' . strtoupper( $key );
+
+		if ( defined( $constant_name ) ) {
+			return constant( $constant_name );
+		}
+
+		$option = get_option( self::OPTION_GROUP, array() );
+
+		if ( is_array( $option ) && array_key_exists( $key, $option ) ) {
+			return $option[ $key ];
+		}
+
+		foreach ( self::fields() as $field ) {
+			if ( $field['key'] === $key ) {
+				return $field['default'] ?? $fallback;
+			}
+		}
+
+		return $fallback;
+	}
+}

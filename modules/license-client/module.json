@@ -1,0 +1,20 @@
+{
+  "id": "license-client",
+  "name": "License Client",
+  "version": "1.0.0",
+  "description": "Talks to the ansariaiwp license server: activate/validate/deactivate a license key, and delivers private plugin updates via the update_plugins filter (no wordpress.org, no GitHub links exposed to the site owner).",
+  "requires": ["scheduler"],
+  "conflicts": [],
+  "hooks": {
+    "actions": ["{{PREFIX}}_license_activated", "{{PREFIX}}_license_deactivated", "{{PREFIX}}_license_check"],
+    "filters": ["update_plugins-<license-server-host>", "plugins_api", "site_transient_update_plugins"]
+  },
+  "options": [
+    { "key": "license_key", "type": "string", "default": "" },
+    { "key": "license_status", "type": "string", "default": "inactive" }
+  ],
+  "placeholders": ["LICENSE_SERVER", "LICENSE_PRODUCT_ID"],
+  "entryClass": "LicenseClient",
+  "capabilities": ["manage_options"],
+  "woo": false
+}

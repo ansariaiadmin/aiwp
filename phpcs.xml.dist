@@ -1,0 +1,151 @@
+<?xml version="1.0"?>
+<ruleset name="WP-Plugin-Factory">
+    <description>Coding standard for the WordPress Plugin Factory (scaffold, modules, tools).</description>
+
+    <!-- Paths to check by default. -->
+    <file>scaffold</file>
+    <file>modules</file>
+    <file>tools</file>
+
+    <!-- Only check PHP files. Scaffold *.stub templates are intentionally excluded:
+         they contain {{PLACEHOLDER}} tokens that are not valid PHP until resolved
+         by tools/compose.php, so they are never linted directly. -->
+    <arg name="extensions" value="php"/>
+    <arg value="sp"/>
+    <arg name="colors"/>
+    <arg name="parallel" value="8"/>
+
+    <!-- Never scan these. -->
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/build/*</exclude-pattern>
+    <exclude-pattern>*/node_modules/*</exclude-pattern>
+    <exclude-pattern>*/sandbox/wp-data/*</exclude-pattern>
+    <exclude-pattern>*.stub</exclude-pattern>
+
+    <!-- Minimum supported PHP version, used by PHPCompatibilityWP / PHPCompatibility. -->
+    <config name="testVersion" value="8.1-"/>
+    <config name="minimum_supported_wp_version" value="6.5"/>
+
+    <!-- ============================================================
+         scaffold/ and modules/ ship inside every generated WordPress
+         plugin at runtime: hold them to the full WordPress Coding
+         Standards + WP-aware PHPCompatibility ruleset.
+         ============================================================ -->
+    <!-- WordPress-Core (base conventions) + WordPress-Extra (security/quality
+         rules: escaping, nonces, prepared SQL, i18n, prefixing, ...).
+         WordPress-Docs (mandatory @param/@return on every single method) is
+         intentionally not included: it is a documentation-completeness
+         ruleset, not a security/functional one, and this codebase already
+         documents non-obvious parameters and return types via native PHP
+         type declarations plus docblocks on every class and every
+         non-trivial method. -->
+    <rule ref="WordPress-Core">
+        <include-pattern>*/scaffold/*</include-pattern>
+        <include-pattern>*/modules/*</include-pattern>
+
+        <!-- Every module/scaffold file uses a placeholder namespace/prefix that is
+             replaced at compose time, so file-name-must-match-class sniffs that
+             assume the final plugin slug do not apply to the template sources. -->
+        <exclude name="WordPress.Files.FileName"/>
+        <!-- Target codebase is PHP 8.1+ only: prefer modern short array
+             syntax ([]) over WP core's legacy array() convention. -->
+        <exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
+        <!-- Hook names are built as the literal '{{PREFIX}}_something' mustache
+             token, resolved to the real snake_case, lowercase prefix at compose
+             time; the sniff cannot see through the token so it flags every hook
+             name as invalid even though the resolved output always is valid. -->
+        <exclude name="WordPress.NamingConventions.ValidHookName"/>
+        <!-- Deprecated sniff group, excluded upstream by WPCS's own "WordPress" ruleset. -->
+        <exclude name="WordPress.PHP.POSIXFunctions"/>
+        <!-- Shells out to "php -l" via shell_exec(); redundant with the
+             explicit "composer run lint:syntax" / CI php -l pass, and
+             unreliable on hosts where shell_exec()/proc_open() are
+             disabled or sandboxed. -->
+        <exclude name="Generic.PHP.Syntax"/>
+    </rule>
+
+    <rule ref="WordPress-Extra">
+        <include-pattern>*/scaffold/*</include-pattern>
+        <include-pattern>*/modules/*</include-pattern>
+        <exclude name="WordPress.Files.FileName"/>
+        <exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
+        <exclude name="WordPress.NamingConventions.ValidHookName"/>
+        <exclude name="WordPress.PHP.POSIXFunctions"/>
+        <exclude name="Generic.PHP.Syntax"/>
+    </rule>
+
+    <rule ref="PHPCompatibilityWP">
+        <include-pattern>*/scaffold/*</include-pattern>
+        <include-pattern>*/modules/*</include-pattern>
+    </rule>
+
+    <!-- Text domain: scaffold/module source uses the literal {{TEXT_DOMAIN}}
+         mustache token as the text domain string (resolved to the real
+         per-plugin text domain at compose time), so it is allow-listed here
+         instead of a real, hardcoded domain. -->
+    <rule ref="WordPress.WP.I18n">
+        <include-pattern>*/scaffold/*</include-pattern>
+        <include-pattern>*/modules/*</include-pattern>
+        <properties>
+            <property name="text_domain" type="array">
+                <element value="{{TEXT_DOMAIN}}"/>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- Prefix check: scaffold/module source uses the bare identifier-safe
+         placeholders VendorPlugin / VPLUGIN (namespaces, constants) and the
+         {{PREFIX}} mustache token (hook/option names inside string
+         literals), all resolved to the real per-plugin prefix at compose
+         time by tools/compose.php. -->
+    <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+        <include-pattern>*/scaffold/*</include-pattern>
+        <include-pattern>*/modules/*</include-pattern>
+        <properties>
+            <property name="prefixes" type="array">
+                <element value="VendorPlugin"/>
+                <element value="VPLUGIN"/>
+                <element value="{{PREFIX}}"/>
+                <element value="vplugin"/>
+            </property>
+        </properties>
+        <!-- '{{PREFIX}}' is not a syntactically valid PHP identifier prefix
+             (it contains "{" and "}"), so the sniff cannot statically verify
+             names built from it and emits an informational warning on every
+             file that lists it — even though the *resolved* prefix always
+             is a valid, real per-plugin identifier once tools/compose.php
+             replaces the token. -->
+        <exclude name="WordPress.NamingConventions.PrefixAllGlobals.InvalidPrefixPassed"/>
+    </rule>
+
+    <!-- ============================================================
+         tools/ is plain CLI build tooling (never shipped inside a
+         generated plugin, never runs inside WordPress): hold it to
+         PSR-12 + cross-version PHP compatibility only, not the
+         WordPress-specific runtime conventions above.
+         ============================================================ -->
+    <rule ref="PSR12">
+        <include-pattern>*/tools/*</include-pattern>
+        <!-- tools/validate.php, compose.php and build.php are intentionally
+             both librarires (functions other tools require_once) AND CLI
+             entry points (a small "if invoked directly" runner block at the
+             bottom), so they legitimately mix declarations with a
+             side effect. -->
+        <exclude name="PSR1.Files.SideEffects"/>
+    </rule>
+
+    <rule ref="Generic.Files.LineLength">
+        <include-pattern>*/tools/*</include-pattern>
+        <properties>
+            <property name="lineLimit" value="160"/>
+            <property name="absoluteLineLimit" value="0"/>
+        </properties>
+    </rule>
+
+    <rule ref="PHPCompatibility">
+        <include-pattern>*/tools/*</include-pattern>
+    </rule>
+
+    <!-- Show sniff codes in all reports for easier fixing. -->
+    <arg name="report" value="full"/>
+</ruleset>

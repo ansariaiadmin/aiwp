@@ -1,0 +1,19 @@
+{
+  "id": "cron-report",
+  "name": "Recurring Report",
+  "version": "1.0.0",
+  "description": "Schedules a recurring report job via the scheduler module and emails it via email-notify when both are present; otherwise exposes the raw data through a filter for glue code to consume.",
+  "requires": ["scheduler"],
+  "conflicts": [],
+  "hooks": {
+    "actions": ["{{PREFIX}}_run_report", "{{PREFIX}}_report_ready"],
+    "filters": ["{{PREFIX}}_report_data", "{{PREFIX}}_report_interval"]
+  },
+  "options": [
+    { "key": "report_email", "type": "email", "default": "" }
+  ],
+  "placeholders": [],
+  "entryClass": "CronReport",
+  "capabilities": ["manage_options"],
+  "woo": false
+}

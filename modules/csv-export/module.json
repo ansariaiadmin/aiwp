@@ -1,0 +1,17 @@
+{
+  "id": "csv-export",
+  "name": "CSV Export",
+  "version": "1.0.0",
+  "description": "Streams arrays/generators to CSV, either as a downloadable admin-post response (nonce + capability guarded) or as a string for storage/email attachment.",
+  "requires": [],
+  "conflicts": [],
+  "hooks": {
+    "actions": ["admin_post_{{PREFIX}}_export_csv"],
+    "filters": ["{{PREFIX}}_csv_export_rows"]
+  },
+  "options": [],
+  "placeholders": [],
+  "entryClass": "CsvExport",
+  "capabilities": ["manage_options"],
+  "woo": false
+}

@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+.env
+.env.local
+.env.*.local
+npm-debug.log*
+*.md
+.vscode
+.idea
+Dockerfile
+docker-compose*.yml
+.dockerignore
+scripts/dev-pglite-server.mjs

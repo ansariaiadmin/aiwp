@@ -1,0 +1,53 @@
+name: wp-plugin-factory-sandbox
+
+services:
+  mariadb:
+    image: mariadb:11
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: wordpress
+      MARIADB_USER: wordpress
+      MARIADB_PASSWORD: wordpress
+    volumes:
+      - ./wp-data/db:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'healthcheck.sh', '--connect', '--innodb_initialized']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  wordpress:
+    image: wordpress:latest
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    ports:
+      - '8765:80'
+    environment:
+      WORDPRESS_DB_HOST: mariadb
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DEBUG: 1
+    volumes:
+      - ./wp-data/html:/var/www/html
+      - ../build:/build:ro
+
+  wpcli:
+    image: wordpress:cli
+    depends_on:
+      - wordpress
+      - mariadb
+    user: xfs
+    environment:
+      WORDPRESS_DB_HOST: mariadb
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+    volumes:
+      - ./wp-data/html:/var/www/html
+      - ../build:/build:ro
+      - ./scripts:/scripts:ro
+    entrypoint: ['tail', '-f', '/dev/null']

@@ -1,0 +1,16 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=AiWp Platform
+Name[fa]=پلتفرم AiWp
+GenericName=WordPress Plugin Factory
+Comment=Start the AiWp platform in your browser
+Comment[fa]=راه‌اندازی پلتفرم AiWp در مرورگر
+# %k expands to the location of this .desktop file, so the launcher works
+# wherever the folder is unpacked — no hardcoded paths.
+Exec=bash -c 'cd "$(dirname "%k")" && exec ./launch-terminal.sh'
+Icon=applications-development
+Terminal=false
+Categories=Development;WebDevelopment;
+StartupNotify=true
+Keywords=aiwp;wordpress;plugin;license;store;

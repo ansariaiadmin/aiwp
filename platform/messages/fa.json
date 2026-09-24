@@ -1,0 +1,129 @@
+{
+  "common": {
+    "appName": "AiWp",
+    "appNameLong": "پلتفرم AiWp",
+    "save": "ذخیره",
+    "saving": "در حال ذخیره…",
+    "cancel": "انصراف",
+    "delete": "حذف",
+    "edit": "ویرایش",
+    "create": "ایجاد",
+    "search": "جست‌وجو",
+    "close": "بستن",
+    "confirm": "تأیید",
+    "back": "بازگشت",
+    "next": "بعدی",
+    "previous": "قبلی",
+    "copy": "کپی",
+    "copied": "کپی شد",
+    "loading": "در حال بارگذاری…",
+    "retry": "تلاش دوباره",
+    "yes": "بله",
+    "no": "خیر",
+    "enabled": "فعال",
+    "disabled": "غیرفعال",
+    "active": "فعال",
+    "inactive": "غیرفعال",
+    "optional": "اختیاری",
+    "required": "الزامی",
+    "all": "همه",
+    "none": "هیچ",
+    "actions": "عملیات",
+    "status": "وضعیت",
+    "createdAt": "تاریخ ایجاد",
+    "updatedAt": "آخرین تغییر",
+    "language": "زبان",
+    "theme": "پوسته",
+    "light": "روشن",
+    "dark": "تیره",
+    "system": "سیستم"
+  },
+  "nav": {
+    "admin": {
+      "dashboard": "داشبورد",
+      "products": "محصولات",
+      "licenses": "لایسنس‌ها",
+      "orders": "سفارش‌ها",
+      "users": "کاربران",
+      "ai": "هوش مصنوعی",
+      "knowledgeBase": "پایگاه دانش",
+      "sms": "پنل پیامک",
+      "auditLog": "گزارش رویدادها",
+      "generalSettings": "تنظیمات عمومی"
+    },
+    "customer": {
+      "dashboard": "داشبورد",
+      "myLicenses": "لایسنس‌های من",
+      "myOrders": "سفارش‌های من",
+      "security": "امنیت حساب",
+      "profile": "پروفایل"
+    }
+  },
+  "state": {
+    "empty": "موردی یافت نشد.",
+    "emptyHint": "با تغییر فیلترها دوباره تلاش کنید.",
+    "error": "خطایی رخ داد.",
+    "errorHint": "کمی دیگر دوباره تلاش کنید.",
+    "noResults": "نتیجه‌ای پیدا نشد.",
+    "offline": "اتصال شما قطع است. تغییرات ذخیره نشده‌اند.",
+    "backOnline": "اتصال برقرار شد."
+  },
+  "kb": {
+    "title": "پایگاه دانش",
+    "subtitle": "اسنادی که مدل هنگام پاسخ‌دادن به آن‌ها مراجعه می‌کند.",
+    "corpusStatus": "وضعیت کورپوس",
+    "corpusStatusHint": "چه چیزی ایندکس شده و با کدام مدل.",
+    "documents": "{count} سند",
+    "chunks": "{count} قطعه",
+    "embedded": "{count} قطعه‌ی امبدشده",
+    "pendingEmbedding": "{count} در انتظار امبد",
+    "noData": "اطلاعاتی در دسترس نیست.",
+    "localEmbedderWarning": "کلید embedding تنظیم نشده، پس از embedder محلی استفاده می‌شود. جست‌وجو کلیدواژه‌محور است و معنای واژه‌ها را درک نمی‌کند. برای جست‌وجوی معنایی، کلید سرویس هوش مصنوعی را وارد کنید.",
+    "addDocument": "افزودن سند",
+    "addDocumentHint": "سند با همین کلید منبع قبلاً وجود داشته باشد، جایگزین می‌شود.",
+    "sourceKind": "نوع منبع",
+    "sourceKey": "کلید منبع",
+    "titleField": "عنوان",
+    "url": "آدرس",
+    "body": "متن",
+    "bodyPlaceholder": "متن کامل سند را اینجا بچسبانید…",
+    "sourceKinds": {
+      "DOCS": "مستندات",
+      "SUPPORT": "پشتیبانی",
+      "MARKETPLACE": "مارکت‌پلیس",
+      "CHANGELOG": "تغییرات",
+      "CODE": "کد",
+      "MANUAL": "دستی"
+    },
+    "saved": "سند ذخیره شد.",
+    "saveFailed": "ذخیره‌ی سند ناموفق بود.",
+    "testRetrieval": "آزمودن بازیابی",
+    "testRetrievalHint": "دقیقاً همان چیزی را می‌بینید که مدل می‌بیند.",
+    "searchPlaceholder": "مثلاً: چطور پشتیبانی HPOS را اعلام کنم؟",
+    "noResultsFor": "هیچ نتیجه‌ای برای «{query}» پیدا نشد — این یعنی کورپوس آن موضوع را پوشش نمی‌دهد، نه اینکه جست‌وجو خراب باشد.",
+    "resultsFor": "{count} نتیجه برای «{query}»",
+    "keywordOnly": "(کلیدواژه‌محور)",
+    "signal": {
+      "keyword": "کلیدواژه",
+      "vector": "معنایی"
+    },
+    "searchFailed": "جست‌وجو ناموفق بود."
+  },
+  "money": {
+    "IRR": "ریال",
+    "IRT": "تومان"
+  },
+  "a11y": {
+    "skipToContent": "پرش به محتوا",
+    "mainNavigation": "ناوبری اصلی",
+    "toggleLanguage": "تغییر زبان",
+    "toggleTheme": "تغییر پوسته",
+    "offlineBanner": "اعلان قطع اتصال"
+  },
+  "pwa": {
+    "installTitle": "نصب AiWp به‌عنوان اپ",
+    "installHint": "دسترسی سریع‌تر و اجرا در پنجره‌ی مستقل.",
+    "install": "نصب",
+    "installed": "نصب شد. از منوی اپ می‌توانید باز کنید."
+  }
+}

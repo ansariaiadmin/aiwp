@@ -1,0 +1,49 @@
+<?php
+/**
+ * GENERATED FILE — do not edit by hand.
+ *
+ * Produced by tools/compose.php from the plugin spec. Re-run the build to
+ * regenerate after changing the spec's "modules" or "options" arrays.
+ *
+ * phpcs:disable -- this entire file is machine-generated data (module
+ * class map, settings fields and the raw spec array); WordPress Coding
+ * Standards array-formatting/alignment rules are not meaningful for it.
+ *
+ * @package VendorPlugin
+ */
+
+declare(strict_types=1);
+
+namespace VendorPlugin;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+final class Manifest {
+
+	/**
+	 * Module id => fully-qualified class name, in the exact order modules
+	 * were resolved (dependencies before dependents).
+	 *
+	 * @var array<string,class-string<\VendorPlugin\Contracts\ModuleInterface>>
+	 */
+	public const MODULE_CLASSES = {{MODULE_CLASSES_PHP_ARRAY}};
+
+	/**
+	 * Settings fields declared in the plugin spec's "options" array.
+	 *
+	 * @var array<int,array<string,mixed>>
+	 */
+	public const SETTINGS_FIELDS = {{SETTINGS_FIELDS_PHP_ARRAY}};
+
+	/**
+	 * Full plugin spec, minified, for modules that need metadata (license
+	 * server URL, product id, etc) without re-parsing a spec file at
+	 * runtime.
+	 *
+	 * @var array<string,mixed>
+	 */
+	public const SPEC = {{SPEC_PHP_ARRAY}};
+}
+

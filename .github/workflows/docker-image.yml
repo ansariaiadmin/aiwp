@@ -1,0 +1,50 @@
+name: Docker Image CI
+
+# Builds the platform's production image. The build context is `platform/`,
+# because the only Dockerfile in this repository is `platform/Dockerfile` —
+# the previous version of this workflow pointed at a repo-root `Dockerfile`
+# that does not exist, so it failed on every run (docs/AUDIT-2026-09-07.md §3.2).
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the platform image
+        run: |
+          docker build platform \
+            --file platform/Dockerfile \
+            --tag aiwp-platform:${{ github.sha }} \
+            --tag aiwp-platform:latest
+
+      # The Dockerfile declares a HEALTHCHECK and runs `node server.js` as the
+      # non-root `nextjs` user. Smoke-booting it here catches a broken
+      # standalone bundle or a missing runtime dependency that `docker build`
+      # alone would not notice. DATABASE_URL/SESSION_SECRET/ENCRYPTION_KEY are
+      # required at module-evaluation time by src/lib/db/index.ts.
+      - name: Smoke-boot the image and hit /api/health
+        run: |
+          docker run -d --name aiwp-smoke -p 3000:3000 \
+            -e DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder" \
+            -e SESSION_SECRET="smoke-test-placeholder-not-a-real-secret-000000" \
+            -e ENCRYPTION_KEY="smoke-test-placeholder-not-a-real-key" \
+            aiwp-platform:${{ github.sha }}
+          for _ in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3000/api/health >/dev/null 2>&1; then
+              echo "OK: /api/health responded"
+              docker rm -f aiwp-smoke
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "FAIL: /api/health never became healthy" >&2
+          docker logs aiwp-smoke >&2 || true
+          docker rm -f aiwp-smoke || true
+          exit 1

@@ -1,0 +1,118 @@
+name: aiwp-platform
+
+# Production stack: Next.js app (standalone Docker image) + Postgres +
+# Redis + Nginx (TLS termination + reverse proxy) + Certbot (automatic
+# Let's Encrypt renewal). See docs/DEPLOYMENT.md for the full setup guide.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-aiwp}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-aiwp}
+      # The redis service below is started with --requirepass ${REDIS_PASSWORD},
+      # so the app's connection string must carry the same credential (an
+      # empty REDIS_PASSWORD here still works: redis-server treats
+      # --requirepass "" as "no auth required", matching redis:// with no
+      # credentials).
+      REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    expose:
+      - '3000'
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env.production
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-aiwp}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-aiwp}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    entrypoint: ["node", "scripts/migrate.mjs"]
+    profiles: ["tools"]
+
+  seed-admin:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env.production
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-aiwp}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-aiwp}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    entrypoint: ["node", "scripts/seed-admin.mjs"]
+    profiles: ["tools"]
+
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-aiwp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-aiwp}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aiwp}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:-}"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - certbot-www:/var/www/certbot:ro
+      - certbot-etc:/etc/letsencrypt:ro
+
+  certbot:
+    image: certbot/certbot:latest
+    restart: unless-stopped
+    volumes:
+      - certbot-www:/var/www/certbot
+      - certbot-etc:/etc/letsencrypt
+    entrypoint: >
+      sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot; sleep 12h & wait $${!}; done;'
+
+volumes:
+  postgres-data:
+  redis-data:
+  certbot-www:
+  certbot-etc:

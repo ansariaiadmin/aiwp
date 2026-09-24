@@ -1,0 +1,159 @@
+<?php
+/**
+ * Container / bootstrap. Loads and runs every module listed in the
+ * generated module-manifest.php, in two phases (register, then boot).
+ *
+ * @package VendorPlugin
+ */
+
+declare(strict_types=1);
+
+namespace VendorPlugin;
+
+use VendorPlugin\Contracts\ModuleInterface;
+use VendorPlugin\Manifest;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+final class Plugin {
+
+	private static ?Plugin $instance = null;
+
+	/** @var array<string,ModuleInterface> */
+	private array $modules = array();
+
+	private Settings $settings;
+
+	private Assets $assets;
+
+	public static function instance(): self {
+		if ( null === self::$instance ) {
+			self::$instance = new self();
+			self::$instance->boot();
+		}
+
+		return self::$instance;
+	}
+
+	private function __construct() {
+		$this->settings = new Settings();
+		$this->assets   = new Assets();
+	}
+
+	private function boot(): void {
+		Installer::maybe_migrate();
+
+		$this->declare_woocommerce_compatibility();
+
+		$this->settings->register();
+		$this->assets->register();
+
+		$this->load_modules();
+
+		add_action( 'init', array( $this, 'load_textdomain' ) );
+	}
+
+	public function load_textdomain(): void {
+		load_plugin_textdomain( '{{TEXT_DOMAIN}}', false, dirname( VPLUGIN_BASENAME ) . '/languages' );
+	}
+
+	/**
+	 * Declares HPOS ('custom_order_tables') and Cart/Checkout Blocks
+	 * compatibility. Runs on 'before_woocommerce_init', which fires even
+	 * when WooCommerce is not active (the function existence check makes
+	 * this a no-op in that case).
+	 */
+	private function declare_woocommerce_compatibility(): void {
+		add_action(
+			'before_woocommerce_init',
+			static function (): void {
+				if ( ! class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
+					return;
+				}
+
+				\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
+					'custom_order_tables',
+					VPLUGIN_FILE,
+					true
+				);
+
+				\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
+					'cart_checkout_blocks',
+					VPLUGIN_FILE,
+					true
+				);
+			}
+		);
+	}
+
+	/**
+	 * Instantiates every module class from MODULE_CLASSES, evaluates
+	 * requirements(), and runs register()/boot() in two clean passes so a
+	 * module can rely on other modules already having registered their
+	 * hooks by the time its own boot() runs.
+	 */
+	private function load_modules(): void {
+		$unmet_by_module = array();
+
+		foreach ( Manifest::MODULE_CLASSES as $module_id => $class ) {
+			if ( ! class_exists( $class ) ) {
+				continue;
+			}
+
+			/** @var ModuleInterface $module */
+			$module = new $class();
+			$unmet  = $module->requirements();
+
+			if ( array() !== $unmet ) {
+				$unmet_by_module[ $module_id ] = $unmet;
+
+				continue;
+			}
+
+			$this->modules[ $module_id ] = $module;
+		}
+
+		foreach ( $this->modules as $module ) {
+			$module->register();
+		}
+
+		foreach ( $this->modules as $module ) {
+			$module->boot();
+		}
+
+		if ( array() !== $unmet_by_module ) {
+			add_action(
+				'admin_notices',
+				static function () use ( $unmet_by_module ): void {
+					foreach ( $unmet_by_module as $module_id => $messages ) {
+						printf(
+							'<div class="notice notice-warning"><p><strong>%1$s</strong> %2$s: %3$s</p></div>',
+							esc_html__( '{{PLUGIN_NAME}}', '{{TEXT_DOMAIN}}' ),
+							esc_html(
+								sprintf(
+								/* translators: %s: module id. */
+									__( 'module "%s" is disabled', '{{TEXT_DOMAIN}}' ),
+									$module_id
+								)
+							),
+							esc_html( implode( ' ', $messages ) )
+						);
+					}
+				}
+			);
+		}
+	}
+
+	public function module( string $id ): ?ModuleInterface {
+		return $this->modules[ $id ] ?? null;
+	}
+
+	/**
+	 * @return array<int,array<string,mixed>>
+	 */
+	public static function settings_fields(): array {
+		return Manifest::SETTINGS_FIELDS;
+	}
+}

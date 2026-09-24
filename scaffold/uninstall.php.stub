@@ -1,0 +1,21 @@
+<?php
+/**
+ * Uninstall handler.
+ *
+ * WordPress only loads this file when a user clicks "Delete" for the plugin
+ * from wp-admin — never on simple deactivation. It removes options and,
+ * only if the site owner opted in via the "Remove data on uninstall"
+ * setting, the plugin's custom database table(s).
+ *
+ * @package VendorPlugin
+ */
+
+declare(strict_types=1);
+
+if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
+	exit;
+}
+
+require __DIR__ . '/src/autoload.php';
+
+\VendorPlugin\Activator::uninstall();

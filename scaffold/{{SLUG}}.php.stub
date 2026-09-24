@@ -1,0 +1,50 @@
+<?php
+/**
+ * Plugin Name:       {{PLUGIN_NAME}}
+ * Plugin URI:        {{AUTHOR_URI}}
+ * Description:       {{DESCRIPTION}}
+ * Version:           {{VERSION}}
+ * Requires at least: {{REQUIRES_WP}}
+ * Requires PHP:      {{REQUIRES_PHP}}
+ * Author:            {{AUTHOR_NAME}}
+ * Author URI:        {{AUTHOR_URI}}
+ * License:           GPL-2.0-or-later
+ * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain:       {{TEXT_DOMAIN}}
+ * Domain Path:       /languages
+{{REQUIRES_PLUGINS_LINE}} *
+ * @package VendorPlugin
+ */
+
+declare(strict_types=1);
+
+// This file has no logic beyond bootstrapping: every module and every piece
+// of behaviour lives under src/. Keep it that way when hand-editing.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+define( 'VPLUGIN_VERSION', '{{VERSION}}' );
+define( 'VPLUGIN_FILE', __FILE__ );
+define( 'VPLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+define( 'VPLUGIN_URL', plugin_dir_url( __FILE__ ) );
+define( 'VPLUGIN_BASENAME', plugin_basename( __FILE__ ) );
+
+require VPLUGIN_DIR . 'src/autoload.php';
+
+register_activation_hook( __FILE__, array( 'VendorPlugin\Activator', 'activate' ) );
+register_deactivation_hook( __FILE__, array( 'VendorPlugin\Activator', 'deactivate' ) );
+
+/**
+ * Single bootstrap entry point. All plugin logic starts here.
+ *
+ * The function itself is named after the plugin prefix (vplugin_boot is the
+ * scaffold's own placeholder name; tools/compose.php renames both the
+ * declaration and the add_action() callback string together) to avoid any
+ * chance of colliding with another active plugin.
+ */
+function vplugin_boot(): \VendorPlugin\Plugin {
+	return \VendorPlugin\Plugin::instance();
+}
+
+add_action( 'plugins_loaded', 'vplugin_boot' );

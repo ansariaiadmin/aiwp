@@ -1,0 +1,145 @@
+name: QA
+
+# Real quality gate for both halves of the repository:
+#   factory/  — PHP 8.1/8.2/8.3: WPCS + PHPCompatibilityWP lint, then a full
+#               spec -> ZIP build for every example spec, asserting that no
+#               {{PLACEHOLDER}} token survives into the artefact.
+#   platform/ — typecheck, lint, unit tests and a production Next.js build.
+#
+# Neither job is allowed to be a no-op: every step below is a command that
+# fails the run on a real regression (see docs/AUDIT-2026-09-07.md §3.2, which
+# recorded that the repository previously shipped no working CI at all).
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+concurrency:
+  group: qa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  factory:
+    name: Factory (PHP ${{ matrix.php-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ["8.1", "8.2", "8.3"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP ${{ matrix.php-version }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: mbstring, zip, json, tokenizer
+          coverage: none
+          tools: composer:v2
+
+      - name: Validate composer.json
+        run: composer validate --strict
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ matrix.php-version }}-${{ hashFiles('composer.json') }}
+          restore-keys: composer-${{ matrix.php-version }}-
+
+      - name: Install dev dependencies (phpcs + WPCS + PHPCompatibilityWP)
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Lint (php -l on every template/module/tool, then WPCS + PHPCompatibilityWP)
+        run: composer lint
+
+      - name: Build every example spec
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          specs=(spec/examples/*.json)
+          if [ ${#specs[@]} -eq 0 ]; then
+            echo "FAIL: no specs found under spec/examples/" >&2
+            exit 1
+          fi
+          for spec in "${specs[@]}"; do
+            echo "==> $spec"
+            php tools/validate.php "$spec"
+            php tools/build.php "$spec"
+          done
+
+      - name: Assert a ZIP was produced for every spec and no placeholder survived
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          fail=0
+          for spec in spec/examples/*.json; do
+            slug=$(php -r 'echo json_decode(file_get_contents($argv[1]), true)["slug"];' "$spec")
+            version=$(php -r 'echo json_decode(file_get_contents($argv[1]), true)["version"];' "$spec")
+            zip="build/${slug}-${version}.zip"
+            if [ ! -f "$zip" ]; then
+              echo "FAIL: missing artefact $zip" >&2
+              fail=1
+              continue
+            fi
+            rm -rf /tmp/unpacked
+            mkdir -p /tmp/unpacked
+            unzip -q "$zip" -d /tmp/unpacked
+            if grep -rIn --include='*.php' --include='*.txt' --include='*.pot' '{{[A-Z_]*}}' /tmp/unpacked; then
+              echo "FAIL: unresolved placeholder token(s) left in $zip" >&2
+              fail=1
+            fi
+            echo "OK: $zip ($(du -h "$zip" | cut -f1))"
+          done
+          exit $fail
+
+      - name: Upload built plugins
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugins-php-${{ matrix.php-version }}
+          path: build/*.zip
+          if-no-files-found: error
+
+  platform:
+    name: Platform (Node 22)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: platform
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: platform/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Typecheck (tsc --noEmit)
+        run: npm run typecheck
+
+      - name: Lint (eslint, incl. React Compiler rules)
+        run: npm run lint
+
+      - name: Unit tests (vitest)
+        run: npm test
+
+      # Deliberately runs with NO environment variables: the database client
+      # is lazy (src/lib/db/index.ts), so a production build needs no
+      # DATABASE_URL. If this step ever starts demanding one, that is a
+      # regression in build-time hygiene, not something to paper over.
+      - name: Production build (next build, standalone output, no env)
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+
+      - name: Assert the standalone server bundle exists
+        run: test -f .next/standalone/server.js

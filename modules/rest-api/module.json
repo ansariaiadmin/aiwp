@@ -1,0 +1,17 @@
+{
+  "id": "rest-api",
+  "name": "REST API",
+  "version": "1.0.0",
+  "description": "Registers a namespaced REST API route group with mandatory permission_callback and input validation/sanitization on every route.",
+  "requires": [],
+  "conflicts": [],
+  "hooks": {
+    "actions": ["rest_api_init"],
+    "filters": ["{{PREFIX}}_rest_routes"]
+  },
+  "options": [],
+  "placeholders": [],
+  "entryClass": "RestApi",
+  "capabilities": ["manage_options"],
+  "woo": false
+}

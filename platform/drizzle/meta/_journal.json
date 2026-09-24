@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1787692838515,
+      "tag": "0000_smooth_preak",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788738749503,
+      "tag": "0001_add_payment_setting_category",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788738795924,
+      "tag": "0002_commerce",
+      "breakpoints": true
+    }
+  ]
+}

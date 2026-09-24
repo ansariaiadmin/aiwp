@@ -1,0 +1,17 @@
+{
+  "id": "db-table",
+  "name": "Custom DB Table",
+  "version": "1.0.0",
+  "description": "Registers a single custom dbDelta-managed table with a small typed repository (insert/update/delete/find/paginate), fully separate from WooCommerce/WordPress core tables.",
+  "requires": [],
+  "conflicts": [],
+  "hooks": {
+    "actions": [],
+    "filters": ["{{PREFIX}}_db_schema", "{{PREFIX}}_db_tables"]
+  },
+  "options": [],
+  "placeholders": [],
+  "entryClass": "DbTable",
+  "capabilities": [],
+  "woo": false
+}

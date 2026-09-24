@@ -1,0 +1,42 @@
+{
+  "slug": "invoice-nagger",
+  "name": "Invoice Nagger",
+  "description": "Reminds customers about unpaid WooCommerce orders on a schedule.",
+  "namespace": "AnsariAi\\InvoiceNagger",
+  "prefix": "ansariai_in",
+  "textDomain": "invoice-nagger",
+  "version": "1.0.0",
+  "modules": [
+    "settings-page",
+    "scheduler",
+    "email-notify",
+    "license-client"
+  ],
+  "options": [
+    {
+      "key": "reminder_email",
+      "type": "email",
+      "label": "گیرنده‌ی گزارش",
+      "default": "",
+      "tab": "general"
+    },
+    {
+      "key": "days_before_reminder",
+      "type": "number",
+      "label": "روزهای قبل از یادآوری",
+      "default": 3,
+      "tab": "general"
+    },
+    {
+      "key": "enable_nagging",
+      "type": "checkbox",
+      "label": "یادآوری فعال باشد",
+      "default": true,
+      "tab": "general"
+    }
+  ],
+  "features": [
+    "Every day, find unpaid orders older than the configured threshold and email the configured recipient a summary.",
+    "Expose a read-only REST endpoint listing the orders currently awaiting payment."
+  ]
+}

@@ -1,0 +1,31 @@
+<?php
+/**
+ * GENERATED FILE — do not edit by hand.
+ *
+ * Minimal PSR-4 classmap autoloader for the composed plugin. Generated plugins
+ * do not ship vendor/autoload.php: this classmap is produced once at build
+ * time by tools/compose.php, so activating the plugin never requires running
+ * `composer install` on the target site.
+ *
+ * phpcs:disable -- the $map array below is machine-generated data; WordPress
+ * Coding Standards array-formatting/alignment rules are not meaningful for it.
+ *
+ * @package VendorPlugin
+ */
+
+declare(strict_types=1);
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+spl_autoload_register(
+	static function ( string $class ): void {
+		$map = {{CLASSMAP_PHP_ARRAY}};
+
+		if ( isset( $map[ $class ] ) ) {
+			require $map[ $class ];
+		}
+	}
+);
+

@@ -1,0 +1,35 @@
+{
+  "name": "AiWp Platform",
+  "short_name": "AiWp",
+  "description": "پنل مدیریت فکتوری پلاگین وردپرس — WordPress plugin factory management.",
+  "id": "/admin",
+  "start_url": "/admin",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#161a24",
+  "theme_color": "#161a24",
+  "dir": "rtl",
+  "lang": "fa",
+  "categories": ["developer tools", "productivity"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/maskable-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

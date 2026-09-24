@@ -1,0 +1,17 @@
+{
+  "id": "email-notify",
+  "name": "Email Notifications",
+  "version": "1.0.0",
+  "description": "wp_mail() wrapper with HTML template, per-notification filters, and safe default headers/From address.",
+  "requires": [],
+  "conflicts": [],
+  "hooks": {
+    "actions": ["{{PREFIX}}_before_email_send"],
+    "filters": ["{{PREFIX}}_email_subject", "{{PREFIX}}_email_body", "{{PREFIX}}_email_headers"]
+  },
+  "options": [],
+  "placeholders": [],
+  "entryClass": "EmailNotify",
+  "capabilities": [],
+  "woo": false
+}

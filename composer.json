@@ -1,0 +1,54 @@
+{
+    "name": "ansariaiwp/wp-plugin-factory",
+    "description": "WordPress Plugin Factory: a spec-driven scaffold + module system for generating production-grade WordPress plugins.",
+    "type": "project",
+    "license": "GPL-2.0-or-later",
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "require": {
+        "php": ">=8.1"
+    },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "^3.9",
+        "wp-coding-standards/wpcs": "^3.1",
+        "phpcompatibility/phpcompatibility-wp": "^2.1",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        },
+        "optimize-autoloader": true,
+        "sort-packages": true
+    },
+    "scripts": {
+        "lint": [
+            "@lint:syntax",
+            "phpcs --standard=phpcs.xml.dist"
+        ],
+        "lint:syntax": "find scaffold modules tools -name '*.php' -print0 | xargs -0 -n1 -P4 php -l",
+        "lint:fix": [
+            "phpcbf --standard=phpcs.xml.dist"
+        ],
+        "validate-spec": [
+            "@php tools/validate.php"
+        ],
+        "compose-plugin": [
+            "@php tools/compose.php"
+        ],
+        "build": [
+            "@php tools/build.php"
+        ],
+        "new-module": [
+            "@php tools/new-module.php"
+        ]
+    },
+    "scripts-descriptions": {
+        "lint": "Run WordPress Coding Standards + PHPCompatibility checks across scaffold/, modules/ and tools/.",
+        "lint:fix": "Auto-fix fixable coding standard violations.",
+        "validate-spec": "Validate a plugin spec JSON file against spec/plugin-spec.schema.json.",
+        "compose-plugin": "Compose scaffold + selected modules from a spec into /build/<slug>/.",
+        "build": "Validate, compose, lint and zip a plugin from a spec into /build/<slug>-<version>.zip.",
+        "new-module": "Scaffold a brand new, empty module folder following MODULE-SPEC.md."
+    }
+}

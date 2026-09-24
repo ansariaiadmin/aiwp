@@ -1,0 +1,17 @@
+{
+  "id": "scheduler",
+  "name": "Background Scheduler",
+  "version": "1.0.0",
+  "description": "Unified async/recurring job scheduling: uses Action Scheduler when available (bundled with WooCommerce, or any other active plugin/library), falls back to wp-cron otherwise.",
+  "requires": [],
+  "conflicts": [],
+  "hooks": {
+    "actions": ["{{PREFIX}}_scheduler_run"],
+    "filters": ["{{PREFIX}}_scheduler_backend"]
+  },
+  "options": [],
+  "placeholders": [],
+  "entryClass": "Scheduler",
+  "capabilities": [],
+  "woo": false
+}

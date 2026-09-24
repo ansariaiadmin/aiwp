@@ -1,0 +1,21 @@
+{
+  "id": "sms-gateway",
+  "name": "SMS Gateway",
+  "version": "1.0.0",
+  "description": "Driver-based SMS sending abstraction with Kavenegar and MeliPayamak drivers. API keys are never hardcoded: read from wp_options set via the settings screen.",
+  "requires": [],
+  "conflicts": [],
+  "hooks": {
+    "actions": [],
+    "filters": ["{{PREFIX}}_sms_driver", "{{PREFIX}}_sms_before_send"]
+  },
+  "options": [
+    { "key": "sms_driver", "type": "string", "default": "kavenegar" },
+    { "key": "sms_api_key", "type": "string", "default": "" },
+    { "key": "sms_sender", "type": "string", "default": "" }
+  ],
+  "placeholders": [],
+  "entryClass": "SmsGateway",
+  "capabilities": ["manage_options"],
+  "woo": false
+}

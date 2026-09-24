@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ansariaiwp.com/schema/plugin-spec.schema.json",
+  "title": "WordPress Plugin Factory — Plugin Spec",
+  "description": "Fully determines a generated WordPress plugin: identity, requirements, selected modules, options and glue-code features.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["slug", "name", "namespace", "prefix", "textDomain", "version", "modules"],
+  "properties": {
+    "slug": {
+      "type": "string",
+      "description": "Plugin folder / main file slug. Lowercase kebab-case.",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+      "minLength": 2,
+      "maxLength": 64
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable plugin name shown in wp-admin.",
+      "minLength": 2,
+      "maxLength": 128
+    },
+    "description": {
+      "type": "string",
+      "description": "Short plugin tagline used in the plugin header and readme.txt.",
+      "maxLength": 240
+    },
+    "namespace": {
+      "type": "string",
+      "description": "Root PHP namespace, PSR-4, e.g. AnsariAi\\StoreHealth.",
+      "pattern": "^[A-Z][A-Za-z0-9]*(\\\\[A-Z][A-Za-z0-9]*)*$"
+    },
+    "prefix": {
+      "type": "string",
+      "description": "Function/hook/option prefix, snake_case, e.g. ansariai_sh.",
+      "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$",
+      "minLength": 2,
+      "maxLength": 20
+    },
+    "textDomain": {
+      "type": "string",
+      "description": "WordPress i18n text domain. Should equal slug unless there is a reason not to.",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version of the generated plugin.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$"
+    },
+    "author": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "uri": { "type": "string", "format": "uri" }
+      }
+    },
+    "requires": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Minimum runtime requirements, used for plugin headers and requirements() checks.",
+      "properties": {
+        "php": { "type": "string", "pattern": "^\\d+\\.\\d+$", "default": "8.1" },
+        "wp": { "type": "string", "pattern": "^\\d+\\.\\d+$", "default": "6.5" },
+        "woo": { "type": "string", "pattern": "^\\d+\\.\\d+$" }
+      }
+    },
+    "license": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Configures the license-client module. Omit or set enabled=false for a free plugin.",
+      "required": ["enabled"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "server": {
+          "type": "string",
+          "format": "uri",
+          "description": "Base URL of the ansariaiwp license API, e.g. https://ansariaiwp.com/api/v1. Never a GitHub URL — private update delivery only."
+        },
+        "productId": {
+          "type": "string",
+          "description": "Product identifier known to the license server. Defaults to slug."
+        }
+      },
+      "if": {
+        "properties": { "enabled": { "const": true } }
+      },
+      "then": {
+        "required": ["server"]
+      }
+    },
+    "modules": {
+      "type": "array",
+      "description": "Module ids (folder names under modules/) to include. Order does not matter; dependencies are resolved automatically.",
+      "items": { "type": "string", "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "options": {
+      "type": "array",
+      "description": "Plugin-level Settings API fields the Settings scaffold should render and sanitize.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key", "type"],
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Option key suffix, appended to the plugin prefix, e.g. report_email => {prefix}_report_email.",
+            "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["text", "email", "url", "number", "checkbox", "select", "textarea", "password"]
+          },
+          "label": { "type": "string" },
+          "default": {},
+          "choices": {
+            "type": "array",
+            "description": "Required when type=select.",
+            "items": { "type": "string" }
+          },
+          "tab": {
+            "type": "string",
+            "description": "Settings tab id this field belongs to. Defaults to 'general'.",
+            "default": "general"
+          }
+        }
+      }
+    },
+    "features": {
+      "type": "array",
+      "description": "Short natural-language descriptions of custom glue logic an agent should implement in a Glue class. Documentation-only; does not affect tools/compose.php output directly.",
+      "items": { "type": "string" }
+    },
+    "glueClass": {
+      "type": "string",
+      "description": "Optional fully-qualified class name (under {{NAMESPACE}}\\Glue) providing custom logic beyond modules. See docs/AGENT-GUIDE.md.",
+      "pattern": "^[A-Z][A-Za-z0-9]*(\\\\[A-Z][A-Za-z0-9]*)*$"
+    }
+  }
+}
