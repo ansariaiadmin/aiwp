@@ -2,7 +2,8 @@
     "name": "ansariaiwp/wp-plugin-factory",
     "description": "WordPress Plugin Factory: a spec-driven scaffold + module system for generating production-grade WordPress plugins.",
     "type": "project",
-    "license": "GPL-2.0-or-later",
+    "version": "1.0.1",
+    "license": "MIT",
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {

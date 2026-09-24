@@ -8,6 +8,15 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://aiwp:aiwp@db:5432/aiwp
+      # Required at boot by platform/src/lib/env.ts — the app exits with a
+      # clear error without them, so they must be passed through here.
+      # Generate real values: openssl rand -base64 48
+      - SESSION_SECRET=${SESSION_SECRET:?set SESSION_SECRET (min 32 chars) in .env or the shell — e.g. `openssl rand -base64 48`}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:?set ENCRYPTION_KEY (min 16 chars) in .env or the shell — e.g. `openssl rand -base64 32`}
+      # Public URL of this deployment (emails, links). Override in .env: APP_URL=https://example.com
+      - APP_URL=${APP_URL:-http://localhost:3000}
+      # Optional: comma-separated extra trusted hosts for CSRF origin checks.
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-}
     depends_on:
       db:
         condition: service_healthy

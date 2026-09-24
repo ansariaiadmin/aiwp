@@ -1,3 +1,7 @@
+# Changelog — aiwp
+
+All notable changes to this project will be documented in this file.
+
 ## [v1.0.1] - 2026-09-24 - Non-Technical Auto Install + Auto Update Edition
 
 ### Added - نصب خودکار برای افراد غیر فنی
@@ -17,10 +21,6 @@
 ### Docs
 - README badge+mermaid+quickstart+sample output + non-technical section
 - INSTALL.md + docs/USER_GUIDE_FA.md + docs/USER_GUIDE_EN.md
-
-# Changelog — aiwp
-
-All notable changes to this project will be documented in this file.
 
 ## [1.0.0] - 2026-09-24
 ### Added

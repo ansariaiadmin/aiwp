@@ -103,6 +103,11 @@ function wppf_validate_module( array $module ): array {
 if (realpath($argv[0] ?? '') === __FILE__) {
     $specPath = $argv[1] ?? '';
 
+    if (in_array($specPath, ['-h', '--help', 'help'], true)) {
+        fwrite(STDOUT, "Usage: php tools/validate.php <path/to/spec.json>\n\nValidates a plugin spec against spec/plugin-spec.schema.json and resolves its module selection.\n");
+        exit(0);
+    }
+
     if ('' === $specPath) {
         fwrite(STDERR, "Usage: php tools/validate.php <path/to/spec.json>\n");
         exit(1);

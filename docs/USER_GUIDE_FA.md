@@ -46,7 +46,7 @@ install.bat
 ```
 http://localhost:3000
 ```
-- ورود: admin@aiwp.dev / Admin@123
+- ورود: admin@aiwp.dev / رمزی که نصب در انتهای خروجی نشان داد (رمز تصادفی امن ساخته می‌شود)
 - سلامت: http://localhost:3000/api/health
 
 **تمام!** 🎉

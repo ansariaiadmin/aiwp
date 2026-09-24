@@ -26,7 +26,6 @@ See README quickstart.
 ## Release
 - Maintainer creates tag: `git tag v1.0.0 && git push origin v1.0.0` (public) or v0.9.0 (private)
 - GitHub Release with changelog
-- Update fleet HANDOFF.md in ~/pub/HANDOFF.md
 
 ## Reporting
 - For TASK #8 REPORT: include scorecard repo×10, evidence snippets, Release tags list, v2 sections, fleet table

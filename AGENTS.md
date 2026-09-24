@@ -32,7 +32,7 @@
 6. CODE QUALITY linter 0 + no deprecated utcnow
 7. DEMO quickstart reproducible + sample output
 8. RELEASE tag + GitHub Release
-9. HANDOFF AGENTS.md/CONTRIBUTING.md + fleet HANDOFF.md
+9. HANDOFF via AGENTS.md/CONTRIBUTING.md + CHANGELOG
 10. HONEST SCOPE v2 explicit
 
 ## Constraints

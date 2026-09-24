@@ -46,8 +46,12 @@ install.bat
 ```
 http://localhost:3000
 ```
-- ورود: admin@aiwp.dev / Admin@123
+- **ایمیل:** `admin@aiwp.dev`
+- **رمز عبور:** همان رمزی که در **آخرین خط خروجی نصب** نمایش داده می‌شود (یک رمز تصادفی امن ساخته می‌شود؛ آن را جای دیگری هم ذخیره کنید)
 - سلامت: http://localhost:3000/api/health
+
+> اگر رمز را گم کردید، بسازیدش دوباره:
+> `docker compose run --rm platform node scripts/seed-admin.mjs --email you@example.com --password 'YourNewPass123'`
 
 **تمام!** 🎉
 

@@ -39,7 +39,7 @@ Open browser:
 ```
 http://localhost:3000
 ```
-- Login: admin@aiwp.dev / Admin@123
+- Login: admin@aiwp.dev / the random password printed at the end of the install output
 - Health: http://localhost:3000/api/health
 
 Done! 🎉

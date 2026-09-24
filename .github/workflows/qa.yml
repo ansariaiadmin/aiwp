@@ -57,22 +57,58 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build and run docker with HOSTNAME=0.0.0.0
+      - name: Build platform image
+        run: docker build -t aiwp-platform ./platform
+      - name: Start postgres + app containers
         run: |
-          echo "Testing e2e stage docker with HOSTNAME=0.0.0.0 + two IP + Origin header"
-          # Simulate the e2e flow described in task
-          # Check if Dockerfile or docker-compose exists
-          if [ -f Dockerfile ]; then
-            echo "Dockerfile found, checking HOSTNAME handling"
-            grep -q "0.0.0.0" Dockerfile && echo "HOSTNAME 0.0.0.0 found in Dockerfile" || echo "No hardcoded 0.0.0.0 but app should bind to 0.0.0.0"
-          fi
-          # Simulate two IP + Origin header login flow
-          echo "Simulating login flow with Origin header"
-          echo "Origin: http://localhost:3000" > /tmp/origin.txt
-          echo "X-Forwarded-For: 192.168.1.1, 10.0.0.1" > /tmp/ips.txt
-          cat /tmp/origin.txt
-          cat /tmp/ips.txt
-          echo "E2E docker stage: PASS (HOSTNAME=0.0.0.0 + Origin header validated)"
+          docker network create e2e
+          docker run -d --name db --network e2e \
+            -e POSTGRES_USER=aiwp -e POSTGRES_PASSWORD=aiwp -e POSTGRES_DB=aiwp \
+            postgres:16-alpine
+          # HOSTNAME=0.0.0.0 is what the production image sets; the CSRF
+          # origin check must accept a browser-style Origin against the
+          # request Host header, not against the bind address.
+          docker run -d --name app --network e2e -p 3000:3000 \
+            -e HOSTNAME=0.0.0.0 \
+            -e DATABASE_URL=postgresql://aiwp:aiwp@db:5432/aiwp \
+            -e SESSION_SECRET=e2e-session-secret-0123456789abcdef0123456789abcdef \
+            -e ENCRYPTION_KEY=e2e-encryption-key-0123456789ab \
+            aiwp-platform
+      - name: Wait for /api/health
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:3000/api/health >/dev/null; then exit 0; fi
+            sleep 5
+          done
+          docker logs app || true
+          echo "FAIL: health endpoint never became ready"
+          exit 1
+      - name: Migrate DB + seed admin
+        run: |
+          docker exec app node scripts/migrate.mjs
+          docker exec app node scripts/seed-admin.mjs --email admin@example.com --password 'E2e-Pass-123' --name Admin
+      - name: Login from two IPs with matching Origin header
+        run: |
+          CODE=$(curl -s -o /tmp/login.json -w '%{http_code}' \
+            -X POST http://localhost:3000/api/auth/login \
+            -H 'Content-Type: application/json' \
+            -H 'Origin: http://localhost:3000' \
+            -H 'X-Forwarded-For: 192.168.1.1, 10.0.0.1' \
+            -d '{"email":"admin@example.com","password":"E2e-Pass-123"}')
+          echo "login status: $CODE"; cat /tmp/login.json
+          test "$CODE" = "200"
+      - name: Cross-origin mutation must be rejected (403)
+        run: |
+          CODE=$(curl -s -o /tmp/csrf.json -w '%{http_code}' \
+            -X POST http://localhost:3000/api/auth/login \
+            -H 'Content-Type: application/json' \
+            -H 'Origin: http://evil.example' \
+            -d '{"email":"admin@example.com","password":"E2e-Pass-123"}')
+          echo "csrf status: $CODE"; cat /tmp/csrf.json
+          test "$CODE" = "403"
+      - name: Tear down
+        if: always()
+        run: docker rm -f app db || true; docker network rm e2e || true
 
   platform:
     name: Platform (Node 22)
