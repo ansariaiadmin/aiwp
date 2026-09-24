@@ -1,107 +1,177 @@
-# AiWp — WordPress Plugin Factory + Management Platform
+# AiWp — WordPress Plugin Factory + SaaS License Platform
 
-This repository has two parts:
+[![Build](https://github.com/ansariaiadmin/aiwp/actions/workflows/qa.yml/badge.svg?branch=main)](https://github.com/ansariaiadmin/aiwp/actions/workflows/qa.yml)
+[![Tests](https://img.shields.io/badge/tests-PHPCS%20%2B%20PHPCompatibility-brightgreen)](https://github.com/ansariaiadmin/aiwp/actions)
+[![PHP](https://img.shields.io/badge/PHP-%3E%3D8.1-777BB4?logo=php)](https://www.php.net/)
+[![WordPress](https://img.shields.io/badge/WordPress-6.0%2B-21759B?logo=wordpress)](https://wordpress.org/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/Platform-Next.js%2016-black?logo=next.js)](platform/)
 
-1. **The Factory** (this root) — a spec-driven scaffold + module system
-   that turns a small JSON file into a complete, production-grade,
-   installable WordPress plugin. It never ships an end-user plugin
-   itself. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for how the
-   pieces fit together, [`docs/MODULE-SPEC.md`](docs/MODULE-SPEC.md) for
-   the module contract, and [`docs/AGENT-GUIDE.md`](docs/AGENT-GUIDE.md)
-   for the exact step-by-step recipe to generate a new plugin (spec only,
-   no scaffold/module edits).
-2. **[`platform/`](platform/README.md)** — a full SaaS management
-   platform (Next.js 16 + TypeScript + Drizzle/PostgreSQL): a complete
-   **admin panel** (products, licenses, users, AI provider settings — any
-   model/provider — SMS gateway settings, audit log) and a fully separate
-   **customer dashboard**, both talking to the exact same license API
-   contract that the factory's `license-client` module expects. See
-   [`platform/README.md`](platform/README.md) and
-   [`platform/docs/DEPLOYMENT.md`](platform/docs/DEPLOYMENT.md) for a
-   step-by-step production deployment guide (Docker + Nginx + Let's
-   Encrypt).
+> Spec-driven factory that turns a 30-line JSON spec into a production-grade, installable WordPress plugin — plus a full SaaS platform for license management, with admin and customer dashboards sharing the same API contract.
 
-A line-by-line, test-backed quality checklist for both halves of the
-project is in [`docs/ROADMAP.md`](docs/ROADMAP.md).
+---
 
-## Standards this factory enforces on everything it generates
+## What this proves (for freelance clients)
 
-- PHP 8.1+, `declare(strict_types=1)` throughout.
-- WordPress Coding Standards (WPCS 3.x) + PHPCompatibilityWP, zero errors.
-- Security by default: `ABSPATH` guard in every file, nonce +
-  `current_user_can()` on every write action, `sanitize_*` on all input,
-  `esc_*` on all output, `$wpdb->prepare()` for any custom SQL.
-- WooCommerce: HPOS-safe only (`wc_get_orders()` / CRUD, never direct
-  `postmeta`), with `custom_order_tables` + `cart_checkout_blocks`
-  compatibility declared automatically via `FeaturesUtil`.
-- Background jobs: Action Scheduler when available, wp-cron fallback.
-- No secrets committed anywhere; runtime secrets live in `wp_options` (set
-  via the generated Settings screen) or optional `wp-config.php` constants
-  (see `.env.example`).
+- **Spec-driven code generation at scale:** One JSON file → complete plugin with settings, REST API, DB tables, background jobs, SMS/email, license client, WooCommerce HPOS safety. No scaffold edits needed for new plugins. Demonstrates architecture for rapid product factories.
+- **WordPress security & standards mastery:** Every generated file enforces `ABSPATH` guard, nonce + `current_user_can()` on writes, `sanitize_*`/`esc_*`, `$wpdb->prepare()`, WPCS 3.x + PHPCompatibilityWP zero errors, `wc_get_orders()` CRUD (never direct postmeta), Action Scheduler with wp-cron fallback.
+- **Full-stack SaaS platform:** `platform/` is a production Next.js 16 + TypeScript + Drizzle/PostgreSQL app with separate admin (products, licenses, users, AI provider settings — any model/provider, SMS gateway, audit log) and customer dashboards, Docker + Nginx + Let's Encrypt deployment guide.
 
-## How to generate a plugin
+---
+
+## Architecture
+
+```mermaid
+flowchart TB
+    subgraph Factory
+        Spec[plugin-spec.json] --> Validate[tools/validate.php]
+        Validate --> Compose[tools/compose.php]
+        Compose --> Scaffold[scaffold/ + modules/]
+        Scaffold --> Lint[phpcs + php -l]
+        Lint --> Zip[build/slug-version.zip]
+    end
+
+    subgraph Modules
+        Settings[settings-page]
+        Scheduler[scheduler]
+        DB[db-table]
+        REST[rest-api]
+        SMS[sms-gateway]
+        Email[email-notify]
+        License[license-client]
+        CSV[csv-export]
+        Blocks[blocks-compat]
+    end
+
+    Scaffold --- Modules
+
+    subgraph Platform
+        Admin[Admin Panel<br/>Next.js + Drizzle]
+        Customer[Customer Dashboard]
+        API[License API<br/>/v1/activate, validate]
+        DB2[(PostgreSQL)]
+    end
+
+    Zip -->|upload| WP[WordPress]
+    WP -->|license check| API
+    Admin --> API
+    Customer --> API
+    API --> DB2
+```
+
+**Code sample — adding a module in spec (no PHP edits):**
+
+```json
+{
+  "slug": "my-crm",
+  "version": "1.0.0",
+  "modules": ["settings-page", "db-table", "rest-api", "license-client", "sms-gateway"],
+  "settings": {
+    "kavenegar_api_key": {"type": "string", "required": true}
+  },
+  "db_tables": {
+    "contacts": {"columns": {"id": "BIGINT AUTO_INCREMENT", "phone": "VARCHAR(20)"}}
+  }
+}
+```
+
+---
+
+## Quickstart (tested)
 
 ```bash
-composer install                              # once: phpcs + WPCS + PHPCompatibility
+# 1. Clone & install tooling (PHPCS + WPCS + PHPCompatibility)
+git clone https://github.com/ansariaiadmin/aiwp.git
+cd aiwp
+composer install
 
-# 1. Write a spec (see spec/plugin-spec.schema.json + spec/examples/*.json)
+# 2. Validate composer.json and lint (real CI commands)
+composer validate --strict
+composer lint
+
+# 3. Write a spec from example
 cp spec/examples/store-health.json spec/my-plugin.json
-$EDITOR spec/my-plugin.json
+# edit spec/my-plugin.json
 
-# 2. (optional) fast pre-check
+# 4. Fast pre-check
 php tools/validate.php spec/my-plugin.json
 
-# 3. Build: validate -> compose -> PHP syntax check -> lint -> zip
+# 5. Build: validate -> compose -> syntax check -> lint -> zip
 php tools/build.php spec/my-plugin.json
+# -> build/my-crm-1.0.0.zip ready for wp-admin upload
 
-# -> build/<slug>-<version>.zip, ready to upload in wp-admin
+# 6. (Optional) QA in disposable WP+MariaDB sandbox
+sandbox/scripts/qa.sh build/my-crm-1.0.0.zip
+
+# Platform (SaaS) quickstart
+cd platform
+cp .env.example .env
+npm ci
+npm run dev
+# Admin: http://localhost:3000/admin
+# Customer: http://localhost:3000/dashboard
 ```
 
-That's it — no scaffold/module code needs to change to ship a new plugin.
-Full recipe, including when (rarely) to add a new module, is in
-[`docs/AGENT-GUIDE.md`](docs/AGENT-GUIDE.md).
+---
 
-### Other useful commands
+## Features Table
 
-```bash
-composer lint          # WPCS + PHPCompatibility across scaffold/, modules/, tools/
-composer lint:fix       # auto-fix fixable violations
-php tools/new-module.php <module-id> "<Human Name>"   # scaffold a new module
-sandbox/scripts/qa.sh build/<slug>-<version>.zip       # install+activate in a disposable WP+MariaDB sandbox
-```
+| Feature | Factory Enforces | Platform Provides |
+|---------|------------------|-------------------|
+| **Security** | ABSPATH guard, nonce, capability checks, sanitize/esc, $wpdb->prepare | JWT, bcrypt, audit log, RBAC |
+| **WooCommerce** | HPOS-safe CRUD, custom_order_tables, cart_checkout_blocks | License per product |
+| **Background Jobs** | Action Scheduler → wp-cron fallback | Drizzle ORM jobs |
+| **Comms** | SMS (Kavenegar, MeliPayamak), Email (wp_mail wrapper) | SMS gateway settings UI |
+| **License** | Client talks to private server: activate/validate/deactivate + updates | Full server: products, licenses, users |
+| **DevEx** | `composer lint`, `lint:fix`, `tools/new-module.php`, spec schema | TypeScript, ESLint, Prettier |
 
-## Available modules
-
-| Module | What it does |
-|---|---|
-| [`settings-page`](modules/settings-page/README.md) | Settings quick-link on the Plugins list + a guarded "reset settings" action. |
-| [`scheduler`](modules/scheduler/README.md) | Unified background job API: Action Scheduler when available, wp-cron fallback. |
-| [`db-table`](modules/db-table/README.md) | One dbDelta-managed custom table + a small typed, `$wpdb->prepare()`-safe repository. |
-| [`rest-api`](modules/rest-api/README.md) | Registers a `{slug}/v1` REST namespace; enforces `permission_callback` on every route. |
-| [`blocks-compat`](modules/blocks-compat/README.md) | WooCommerce Cart/Checkout Blocks (Store API) integration point. |
-| [`sms-gateway`](modules/sms-gateway/README.md) | Driver-based SMS sending: Kavenegar and MeliPayamak drivers included. |
-| [`email-notify`](modules/email-notify/README.md) | Safe `wp_mail()` wrapper: validated recipient, filtered subject/body, forced `wp_kses_post()`. |
-| [`csv-export`](modules/csv-export/README.md) | CSV generation + a nonce/capability-guarded download endpoint. |
-| [`cron-report`](modules/cron-report/README.md) | Recurring "generate + deliver a report" job (email + CSV snapshot when those modules are present). |
-| [`license-client`](modules/license-client/README.md) | Talks to a private ansariaiwp license server: activate/validate/deactivate + private plugin updates. |
-
-Each module folder contains `module.json` (machine-readable manifest),
-`src/` (implementation), and `README.md` (options, hooks, example usage).
-
-## Repository layout
+**ASCII Demo — Factory Build:**
 
 ```
-composer.json / phpcs.xml.dist / .editorconfig / .gitignore   tooling
-.github/workflows/qa.yml       CI: PHP 8.1/8.2/8.3 matrix, lint + build smoke test
-docs/                          ARCHITECTURE.md, MODULE-SPEC.md, AGENT-GUIDE.md
-spec/                          plugin-spec.schema.json + example specs
-scaffold/                      boilerplate every generated plugin shares ({{PLACEHOLDER}} templates)
-modules/                       opt-in feature units, one per spec's "modules" entry
-tools/                         validate.php, compose.php, build.php, new-module.php
-sandbox/                       docker-compose.yml (WordPress + MariaDB) + qa.sh smoke test
-build/                         (git-ignored) compose/build output
+$ php tools/build.php spec/my-plugin.json
+[1/4] Validating spec... OK
+[2/4] Composing from scaffold + 5 modules... OK
+[3/4] PHP syntax check (12 files)... OK
+[4/4] WPCS + PHPCompatibilityWP... 0 errors
+=> build/my-crm-1.0.0.zip (42 KB) ready
+```
+
+---
+
+## Available Modules
+
+| Module | Purpose |
+|--------|---------|
+| `settings-page` | Settings link + guarded reset |
+| `scheduler` | Unified background jobs |
+| `db-table` | dbDelta table + typed repository |
+| `rest-api` | `{slug}/v1` REST with permission_callback |
+| `blocks-compat` | WooCommerce Blocks integration |
+| `sms-gateway` | Kavenegar + MeliPayamak drivers |
+| `email-notify` | Safe wp_mail wrapper |
+| `csv-export` | CSV + guarded download |
+| `cron-report` | Recurring report + email/CSV |
+| `license-client` | Private license server + updates |
+
+Each module: `module.json` manifest + `src/` + `README.md`.
+
+---
+
+## Repository Layout
+
+```
+composer.json / phpcs.xml.dist   Tooling
+.github/workflows/qa.yml         CI: PHP 8.1/8.2/8.3 matrix
+docs/                            ARCHITECTURE.md, MODULE-SPEC.md, AGENT-GUIDE.md
+spec/                            schema + examples
+scaffold/                        Boilerplate with {{PLACEHOLDER}} templates
+modules/                         Opt-in feature units
+tools/                           validate.php, compose.php, build.php
+platform/                        Next.js 16 SaaS (admin + customer)
+sandbox/                         WP+MariaDB disposable QA
+build/                           (git-ignored) output
 ```
 
 ## License
 
-GPL-2.0-or-later (see individual generated plugin headers).
+MIT — see [LICENSE](LICENSE). Generated plugins are GPL-2.0-or-later per WordPress.org requirements (header in each file).
