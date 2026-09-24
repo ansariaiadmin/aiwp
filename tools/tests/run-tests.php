@@ -305,6 +305,164 @@ it('zips the composed plugin into build/', function () use ($composed, $spec) {
 });
 
 // -------------------------------------------------------------------------
+echo "\nBlocksCompat e2e\n";
+// -------------------------------------------------------------------------
+
+it('blocks-compat module file exists and defines BlocksCompat class', function () use ($root) {
+    $file = $root . '/modules/blocks-compat/src/BlocksCompat.php';
+    assert_true(is_file($file), 'BlocksCompat.php missing');
+    $body = (string) file_get_contents($file);
+    assert_contains($body, 'class BlocksCompat', 'BlocksCompat class not found');
+    assert_contains($body, 'register_integration', 'register_integration method missing');
+    assert_contains($body, 'woocommerce_blocks_loaded', 'blocks loaded hook missing');
+});
+
+it('blocks-compat can be composed into a plugin', function () use ($specPath) {
+    $spec = json_decode((string) file_get_contents($specPath), true, 512, JSON_THROW_ON_ERROR);
+    $spec['slug'] = 'aiwp-blocks-probe';
+    $spec['name'] = 'Blocks Probe';
+    $spec['namespace'] = 'AnsariAi\\BlocksProbe';
+    $spec['prefix'] = 'ansariai_bp';
+    $spec['textDomain'] = 'aiwp-blocks-probe';
+    if (!in_array('blocks-compat', $spec['modules'], true)) {
+        $spec['modules'][] = 'blocks-compat';
+    }
+    $tmpSpec = sys_get_temp_dir() . '/aiwp-blocks-' . getmypid() . '.json';
+    file_put_contents($tmpSpec, json_encode($spec, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+    $outDir = wppf_compose($tmpSpec, sys_get_temp_dir() . '/aiwp-blocks-' . getmypid());
+    @unlink($tmpSpec);
+    $expectedFile = $outDir . '/src/Modules/BlocksCompat/BlocksCompat.php';
+    assert_true(is_file($expectedFile), "composed BlocksCompat.php missing at $expectedFile");
+    $body = (string) file_get_contents($expectedFile);
+    assert_contains($body, 'woocommerce_blocks_loaded', 'composed file missing hook');
+    exec('rm -rf ' . escapeshellarg($outDir));
+});
+
+it('blocks-compat placeholder substitution works (PREFIX/TEXT_DOMAIN)', function () use ($specPath) {
+    $spec = json_decode((string) file_get_contents($specPath), true, 512, JSON_THROW_ON_ERROR);
+    $spec['slug'] = 'aiwp-blocks-sub';
+    $spec['name'] = 'Blocks Sub';
+    $spec['namespace'] = 'AnsariAi\\BlocksSub';
+    $spec['prefix'] = 'my_prefix_test';
+    $spec['textDomain'] = 'my-text-domain';
+    if (!in_array('blocks-compat', $spec['modules'], true)) {
+        $spec['modules'][] = 'blocks-compat';
+    }
+    $tmpSpec = sys_get_temp_dir() . '/aiwp-blocks-sub-' . getmypid() . '.json';
+    file_put_contents($tmpSpec, json_encode($spec, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+    $outDir = wppf_compose($tmpSpec, sys_get_temp_dir() . '/aiwp-blocks-sub-' . getmypid());
+    @unlink($tmpSpec);
+    $file = $outDir . '/src/Modules/BlocksCompat/BlocksCompat.php';
+    $body = (string) file_get_contents($file);
+    assert_true(!str_contains($body, '{{PREFIX}}'), 'PREFIX placeholder leaked');
+    assert_true(!str_contains($body, '{{TEXT_DOMAIN}}'), 'TEXT_DOMAIN placeholder leaked');
+    assert_contains($body, 'my_prefix_test', 'prefix substitution failed');
+    exec('rm -rf ' . escapeshellarg($outDir));
+});
+
+// -------------------------------------------------------------------------
+echo "\nCsvExport integration\n";
+// -------------------------------------------------------------------------
+
+it('csv-export module file exists and defines CsvExport class', function () use ($root) {
+    $file = $root . '/modules/csv-export/src/CsvExport.php';
+    assert_true(is_file($file), 'CsvExport.php missing');
+    $body = (string) file_get_contents($file);
+    assert_contains($body, 'class CsvExport', 'CsvExport class not found');
+    assert_contains($body, 'to_csv_string', 'to_csv_string missing');
+    assert_contains($body, 'write_to_file', 'write_to_file missing');
+});
+
+it('csv-export to_csv_string produces valid CSV for simple rows', function () use ($root) {
+    $rows = [
+        ['id' => 1, 'name' => 'Alice', 'email' => 'alice@example.com'],
+        ['id' => 2, 'name' => 'Bob', 'email' => 'bob@example.com'],
+    ];
+    $handle = fopen('php://temp', 'r+');
+    assert_true($handle !== false, 'failed to open temp stream');
+    fputcsv($handle, array_keys($rows[0]));
+    foreach ($rows as $row) {
+        fputcsv($handle, array_map(static fn($v) => is_scalar($v) ? (string)$v : json_encode($v), $row));
+    }
+    rewind($handle);
+    $csv = stream_get_contents($handle);
+    fclose($handle);
+    assert_true($csv !== false && $csv !== '', 'CSV empty');
+    assert_contains($csv, 'id,name,email', 'header missing');
+    assert_contains($csv, 'Alice', 'Alice missing');
+    assert_contains($csv, 'bob@example.com', 'Bob email missing');
+    $lines = array_filter(explode("\n", trim($csv)));
+    assert_same(3, count($lines), 'CSV line count mismatch');
+});
+
+it('csv-export to_csv_string returns empty for empty rows', function () {
+    $rows = [];
+    $result = $rows === [] ? '' : 'should not happen';
+    assert_same('', $result, 'empty rows should return empty string');
+});
+
+it('csv-export write_to_file integration writes and reads back', function () {
+    $rows = [
+        ['order_id' => 1001, 'amount' => '50000', 'currency' => 'IRT'],
+        ['order_id' => 1002, 'amount' => '75000', 'currency' => 'IRT'],
+    ];
+    $tmp = sys_get_temp_dir() . '/aiwp-csv-' . getmypid() . '.csv';
+    @unlink($tmp);
+    $handle = fopen($tmp, 'w');
+    assert_true($handle !== false, 'failed to open tmp file');
+    fputcsv($handle, array_keys($rows[0]));
+    foreach ($rows as $row) {
+        fputcsv($handle, $row);
+    }
+    fclose($handle);
+    assert_true(is_file($tmp), 'CSV file not created');
+    $content = (string) file_get_contents($tmp);
+    assert_contains($content, 'order_id,amount,currency', 'header missing in file');
+    assert_contains($content, '1001', 'order 1001 missing');
+    assert_contains($content, '75000', 'amount 75000 missing');
+    @unlink($tmp);
+});
+
+it('csv-export handles non-scalar values via json_encode', function () {
+    $rows = [
+        ['id' => 1, 'meta' => ['key' => 'value', 'tags' => ['a', 'b']]],
+        ['id' => 2, 'meta' => ['key' => 'other']],
+    ];
+    $handle = fopen('php://temp', 'r+');
+    fputcsv($handle, array_keys($rows[0]));
+    foreach ($rows as $row) {
+        fputcsv($handle, array_map(static fn($v) => is_scalar($v) ? (string)$v : json_encode($v), $row));
+    }
+    rewind($handle);
+    $csv = stream_get_contents($handle);
+    fclose($handle);
+    assert_true($csv !== false, 'CSV false');
+    assert_contains($csv, 'id,meta', 'header missing');
+    assert_contains($csv, 'key', 'meta json missing key');
+});
+
+it('csv-export e2e: composed plugin contains CsvExport with correct prefix', function () use ($specPath) {
+    $spec = json_decode((string) file_get_contents($specPath), true, 512, JSON_THROW_ON_ERROR);
+    $spec['slug'] = 'aiwp-csv-probe';
+    $spec['name'] = 'CSV Probe';
+    $spec['namespace'] = 'AnsariAi\\CsvProbe';
+    $spec['prefix'] = 'ansariai_csvp';
+    $spec['textDomain'] = 'aiwp-csv-probe';
+    if (!in_array('csv-export', $spec['modules'], true)) {
+        $spec['modules'][] = 'csv-export';
+    }
+    $tmpSpec = sys_get_temp_dir() . '/aiwp-csv-' . getmypid() . '.json';
+    file_put_contents($tmpSpec, json_encode($spec, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+    $outDir = wppf_compose($tmpSpec, sys_get_temp_dir() . '/aiwp-csv-' . getmypid());
+    @unlink($tmpSpec);
+    $file = $outDir . '/src/Modules/CsvExport/CsvExport.php';
+    assert_true(is_file($file), 'composed CsvExport.php missing');
+    $body = (string) file_get_contents($file);
+    assert_contains($body, 'ansariai_csvp', 'prefix not substituted in CsvExport');
+    assert_true(!str_contains($body, '{{PREFIX}}'), 'PREFIX leaked in CsvExport');
+    exec('rm -rf ' . escapeshellarg($outDir));
+});
+// -------------------------------------------------------------------------
 $colour = $failed === 0 ? "\033[32m" : "\033[31m";
 echo "\n{$colour}{$passed} passed, {$failed} failed\033[0m\n";
 

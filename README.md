@@ -77,6 +77,19 @@ flowchart TB
 
 ---
 
+## Sample Output
+
+```bash
+$ php tools/tests/run-tests.php
+25 passed, 0 failed
+
+$ composer validate --strict
+./composer.json is valid
+
+$ php -l modules/blocks-compat/module.php
+No syntax errors detected
+```
+
 ## Quickstart (tested)
 
 ```bash
