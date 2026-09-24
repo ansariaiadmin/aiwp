@@ -7,7 +7,7 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://aiwp:aiwp@db:5432/aiwp
+      - DATABASE_URL=${DATABASE_URL:-postgresql://${POSTGRES_USER:-aiwp}:${POSTGRES_PASSWORD:-aiwp}@db:5432/${POSTGRES_DB:-aiwp}}
     depends_on:
       db:
         condition: service_healthy
@@ -20,10 +20,12 @@ services:
 
   db:
     image: postgres:16-alpine
+    env_file:
+      - .env
     environment:
-      POSTGRES_USER: aiwp
-      POSTGRES_PASSWORD: aiwp
-      POSTGRES_DB: aiwp
+      POSTGRES_USER: ${POSTGRES_USER:-aiwp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aiwp}
+      POSTGRES_DB: ${POSTGRES_DB:-aiwp}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
