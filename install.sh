@@ -9,7 +9,7 @@ NC='\033[0m'
 
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}  AiWp — WordPress Plugin Factory + SaaS License Platform${NC}"
-echo -e "${BLUE}  نصب خودکار - Auto Installer v1.0.2${NC}"
+echo -e "${BLUE}  نصب خودکار - Auto Installer v1.0.3${NC}"
 echo -e "${BLUE}  کارخانه افزونه وردپرس + پلتفرم لایسنس${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo ""
