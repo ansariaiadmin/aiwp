@@ -133,6 +133,11 @@ if (realpath($argv[0] ?? '') === __FILE__) {
     $name = $argv[2] ?? '';
     $entryClass = $argv[3] ?? null;
 
+    if (in_array($id, ['-h', '--help', 'help'], true)) {
+        fwrite(STDOUT, "Usage: php tools/new-module.php <module-id> \"<Human Name>\" [entryClass]\n\nScaffolds a new empty module folder under modules/ following docs/MODULE-SPEC.md:\n  modules/<id>/module.json, README.md and src/<EntryClass>.php (implements ModuleInterface).\n");
+        exit(0);
+    }
+
     if ('' === $id || '' === $name) {
         fwrite(STDERR, "Usage: php tools/new-module.php <module-id> \"<Human Name>\" [entryClass]\n");
         exit(1);

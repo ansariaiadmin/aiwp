@@ -73,11 +73,21 @@ final class Settings {
 	 * @return array<string,string> tab id => tab label
 	 */
 	private function tabs(): array {
+		/**
+		 * Human-readable labels for settings tabs. A module (or glue code) that
+		 * contributes fields under a custom tab should register its label here
+		 * via the '{{PREFIX}}_settings_tab_labels' filter; otherwise the tab id
+		 * is title-cased as a fallback.
+		 *
+		 * @var array<string,string>
+		 */
+		$labels = (array) apply_filters( '{{PREFIX}}_settings_tab_labels', array() );
+
 		$tabs = array( 'general' => __( 'General', '{{TEXT_DOMAIN}}' ) );
 
 		foreach ( self::fields() as $field ) {
 			if ( ! isset( $tabs[ $field['tab'] ] ) ) {
-				$tabs[ $field['tab'] ] = ucwords( str_replace( array( '-', '_' ), ' ', $field['tab'] ) );
+				$tabs[ $field['tab'] ] = $labels[ $field['tab'] ] ?? ucwords( str_replace( array( '-', '_' ), ' ', $field['tab'] ) );
 			}
 		}
 

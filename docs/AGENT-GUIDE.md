@@ -59,6 +59,12 @@ the plugin should be a paid/licensed product (this pulls in the
 `options` becomes the plugin's Settings screen fields — every option a spec
 declares is automatically rendered, sanitized, and readable via
 `{{NAMESPACE}}\Settings::get('key')` at runtime with zero extra code.
+Each option may set `"tab"` (default `"general"`); unknown tab ids get their
+own tab automatically, title-cased from the id. To give a custom tab a nicer
+label, filter `{{PREFIX}}_settings_tab_labels` (`tab id => label`) from glue
+code or a module. Modules can also append their own fields to the shared
+screen via the `{{PREFIX}}_settings_fields` filter instead of registering a
+separate admin page.
 
 ## Step 3 — Describe custom logic in `features`, don't hand-write hooks yet
 
