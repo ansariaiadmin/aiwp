@@ -1,0 +1,52 @@
+{
+  "slug": "store-health",
+  "name": "Store Health Assistant",
+  "description": "Daily WooCommerce store health digest with configurable alert thresholds.",
+  "namespace": "AnsariAi\\StoreHealth",
+  "prefix": "ansariai_sh",
+  "textDomain": "store-health",
+  "version": "1.0.0",
+  "wporg": true,
+  "author": {
+    "name": "AnsariAi",
+    "uri": "https://profiles.wordpress.org/ansariai/"
+  },
+  "requires": {
+    "php": "8.1",
+    "wp": "6.8",
+    "woo": "9.0"
+  },
+  "readme": {
+    "tags": "woocommerce, store-health, monitoring, reports, alerts",
+    "shortDescription": "Get a daily WooCommerce store health report by email with configurable alert thresholds.",
+    "longDescription": "Store Health Assistant runs a daily check of your WooCommerce store and emails you a concise health digest: total orders, revenue, low-stock products, failed payments and abandoned carts. Every threshold is configurable, so you only hear about it when something actually needs attention.\n\n= Features =\n\n* Daily (or custom-interval) store health digest delivered by email\n* Configurable low-stock, revenue-drop and failed-payment thresholds\n* Historical reports stored in a custom table - no post-table bloat\n* CSV export of any report period\n* REST endpoints for headless / external dashboards\n* Fully translatable, WP-Cron based, HPOS-compatible",
+    "faqs": [
+      {
+        "question": "Does this plugin slow down my store?",
+        "answer": "No. All heavy work runs on WP-Cron in the background and reads order data through indexed queries against the WooCommerce orders table."
+      },
+      {
+        "question": "Where are the reports stored?",
+        "answer": "In a dedicated custom table ({prefix}_reports), created on activation. Nothing is written to wp_posts, so your main tables stay lean."
+      },
+      {
+        "question": "Can I send the digest to multiple recipients?",
+        "answer": "Yes. The settings screen accepts a comma-separated list of recipient email addresses."
+      }
+    ]
+  },
+  "modules": [
+    "settings-page",
+    "scheduler",
+    "db-table",
+    "rest-api",
+    "email-notify",
+    "csv-export",
+    "cron-report"
+  ],
+  "options": [
+    { "key": "report_email", "type": "email", "label": "Report recipient(s)", "default": "" },
+    { "key": "low_stock_threshold", "type": "number", "label": "Low-stock threshold", "default": 5 },
+    { "key": "digest_enabled", "type": "checkbox", "label": "Enable daily digest", "default": true }
+  ]
+}

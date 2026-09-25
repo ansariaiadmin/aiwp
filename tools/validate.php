@@ -59,6 +59,27 @@ function wppf_validate_spec( string $specPath ): array {
         throw new RuntimeException('Spec sets license.enabled=true but does not include the "license-client" module.');
     }
 
+    // wordpress.org submission mode: enforce hard review rules up front so a
+    // build that claims wporg=true can never ship with commercial gating.
+    if (! empty($spec['wporg'])) {
+        if (in_array('license-client', $resolved, true)) {
+            throw new RuntimeException('Spec sets wporg=true but includes the "license-client" module. wordpress.org plugins must not gate features or updates behind a license key (Guidelines: no commercial restrictions).');
+        }
+        if (! empty($spec['license']['enabled'])) {
+            throw new RuntimeException('Spec sets wporg=true together with license.enabled=true. Choose one distribution target: wp.org (free) or ansariaiwp.com (licensed).');
+        }
+        $tags = array_map('trim', explode(',', strtolower((string) ($spec['readme']['tags'] ?? ''))));
+        $tags = array_filter($tags, static fn (string $t): bool => '' !== $t);
+        if (count($tags) < 3) {
+            throw new RuntimeException('wporg=true requires at least 3 readme tags under spec.readme.tags (the directory search/review process rejects single-word auto-generated tags).');
+        }
+        foreach ($tags as $tag) {
+            if (preg_match('/[^a-z0-9\-]/', $tag)) {
+                throw new RuntimeException("Invalid wp.org tag \"{$tag}\": tags must be lowercase alphanumeric words separated by hyphens.");
+            }
+        }
+    }
+
     return [
         'spec'    => $spec,
         'modules' => $resolved,

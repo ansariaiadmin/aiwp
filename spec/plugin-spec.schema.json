@@ -65,10 +65,49 @@
         "woo": { "type": "string", "pattern": "^\\d+\\.\\d+$" }
       }
     },
+    "wporg": {
+      "type": "boolean",
+      "default": false,
+      "description": "Target mode: true = build is intended for wordpress.org submission. Enforces hard review rules at build time: license-client module is forbidden (no commercial gating in wp.org plugins), readme.txt must contain real tags and a full Description/FAQ, and no external update/licensing endpoints may be referenced. Default false = private/commercial distribution via ansariaiwp.com."
+    },
+    "readme": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional readme.txt metadata used by the builder. Required fields when wporg=true.",
+      "properties": {
+        "tags": {
+          "type": "string",
+          "description": "Comma-separated wordpress.org plugin tags (lowercase, hyphenated). At least 3 are required when wporg=true.",
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*(\\s*,\\s*[a-z0-9]+(-[a-z0-9]+)*)*$"
+        },
+        "shortDescription": {
+          "type": "string",
+          "maxLength": 150,
+          "description": "One-line tagline shown at the top of the wp.org listing."
+        },
+        "longDescription": {
+          "type": "string",
+          "description": "Full == Description == section text (markdown-lite). Used verbatim in readme.txt."
+        },
+        "faqs": {
+          "type": "array",
+          "description": "Frequently Asked Questions entries rendered into == FAQ ==.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["question", "answer"],
+            "properties": {
+              "question": { "type": "string", "minLength": 5 },
+              "answer": { "type": "string", "minLength": 5 }
+            }
+          }
+        }
+      }
+    },
     "license": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Configures the license-client module. Omit or set enabled=false for a free plugin.",
+      "description": "Configures the license-client module. Omit or set enabled=false for a free plugin. Must not be enabled when wporg=true.",
       "required": ["enabled"],
       "properties": {
         "enabled": { "type": "boolean" },
