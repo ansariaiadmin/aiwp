@@ -8,7 +8,7 @@
   "version": "1.0.0",
   "author": {
     "name": "AnsariAi",
-    "uri": "https://ansariaiwp.com"
+    "uri": "https://ansariai.ir"
   },
   "requires": {
     "php": "8.1",
@@ -17,7 +17,7 @@
   },
   "license": {
     "enabled": true,
-    "server": "https://ansariaiwp.com/api/v1",
+    "server": "https://ansariai.ir/api/v1",
     "productId": "store-health"
   },
   "modules": [

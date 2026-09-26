@@ -1,0 +1,31 @@
+{
+  "id": "health-scan",
+  "name": "Site Health Scanner",
+  "version": "1.0.0",
+  "description": "Real on-site health scanner: PHP/WordPress version, debug flags, uploads writability, database size, cron status and HTTPS. Produces a weighted 0-100 score with per-check statuses, cached in an option, refreshed via WP-Cron, exposed through a REST route and rendered as an admin dashboard widget.",
+  "requires": [],
+  "conflicts": [],
+  "hooks": {
+    "actions": [
+      "{{PREFIX}}_run_health_scan",
+      "{{PREFIX}}_health_scored"
+    ],
+    "filters": [
+      "{{PREFIX}}_health_checks",
+      "{{PREFIX}}_health_score"
+    ]
+  },
+  "options": [
+    {
+      "key": "scan_interval_hours",
+      "type": "number",
+      "default": "24",
+      "label": "Scan interval (hours)",
+      "tab": "health"
+    }
+  ],
+  "placeholders": [],
+  "entryClass": "HealthScan",
+  "capabilities": ["manage_options"],
+  "woo": false
+}

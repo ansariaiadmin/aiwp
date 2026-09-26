@@ -49,7 +49,7 @@ function wppf_placeholder_map( array $spec ): array {
         'TEXT_DOMAIN'             => (string) $spec['textDomain'],
         'VERSION'                 => (string) $spec['version'],
         'AUTHOR_NAME'             => (string) ( $spec['author']['name'] ?? 'AnsariAi' ),
-        'AUTHOR_URI'              => (string) ( $spec['author']['uri'] ?? 'https://ansariaiwp.com' ),
+        'AUTHOR_URI'              => (string) ( $spec['author']['uri'] ?? 'https://ansariai.ir' ),
         'REQUIRES_PHP'            => (string) ( $requires['php'] ?? '8.1' ),
         'REQUIRES_WP'             => (string) ( $requires['wp'] ?? '6.5' ),
         'REQUIRES_WOO'            => (string) ( $requires['woo'] ?? '' ),

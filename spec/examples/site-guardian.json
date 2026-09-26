@@ -1,0 +1,46 @@
+{
+  "slug": "site-guardian",
+  "name": "Site Guardian",
+  "description": "Real-time site health scoring, backup freshness alerts, scheduled email digests and a REST status API - zero configuration needed.",
+  "namespace": "AnsariAi\\SiteGuardian",
+  "prefix": "sguard",
+  "textDomain": "site-guardian",
+  "version": "1.0.0",
+  "author": {
+    "name": "Mohammad Ansari",
+    "uri": "https://ansariai.ir"
+  },
+  "requires": {
+    "php": "8.1",
+    "wp": "6.4"
+  },
+  "license": {
+    "enabled": false,
+    "server": "https://ansariai.ir/api/v1",
+    "productId": "site-guardian"
+  },
+  "modules": [
+    "settings-page",
+    "health-scan",
+    "backup-alert",
+    "email-notify",
+    "rest-api",
+    "scheduler",
+    "cron-report",
+    "csv-export"
+  ],
+  "options": [
+    {
+      "key": "report_email",
+      "type": "email",
+      "label": "Digest recipient",
+      "default": "",
+      "tab": "reports"
+    }
+  ],
+  "features": [
+    "Health score dashboard widget with weighted checks",
+    "Backup staleness detection with throttled email alerts and SMS hook"
+  ],
+  "glueClass": "Glue"
+}

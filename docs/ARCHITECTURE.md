@@ -95,12 +95,12 @@ Every scaffold and module file is a **template**. Tokens are plain
 | `{{VERSION}}`         | `spec.version`                           | `1.0.0`                      |
 | `{{DESCRIPTION}}`     | `spec.description` (optional)            | short plugin tagline         |
 | `{{AUTHOR_NAME}}`     | `spec.author.name` (optional, default "AnsariAi") | `AnsariAi`         |
-| `{{AUTHOR_URI}}`      | `spec.author.uri` (optional)              | `https://ansariaiwp.com`     |
+| `{{AUTHOR_URI}}`      | `spec.author.uri` (optional)              | `https://ansariai.ir`     |
 | `{{REQUIRES_PHP}}`    | `spec.requires.php`                       | `8.1`                        |
 | `{{REQUIRES_WP}}`     | `spec.requires.wp`                        | `6.8`                        |
 | `{{REQUIRES_WOO}}`    | `spec.requires.woo` (optional)            | `9.0`                        |
 | `{{LICENSE_ENABLED}}` | `spec.license.enabled` ? `'1'` : `''`     | `1`                           |
-| `{{LICENSE_SERVER}}`  | `spec.license.server` (optional)          | `https://ansariaiwp.com/api/v1` |
+| `{{LICENSE_SERVER}}`  | `spec.license.server` (optional)          | `https://ansariai.ir/api/v1` |
 
 `tools/compose.php` fails the build (non-zero exit, no ZIP produced) if any
 `{{...}}` token remains unresolved anywhere in the composed output — see

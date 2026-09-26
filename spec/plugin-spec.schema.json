@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ansariaiwp.com/schema/plugin-spec.schema.json",
+  "$id": "https://ansariai.ir/schema/plugin-spec.schema.json",
   "title": "WordPress Plugin Factory — Plugin Spec",
   "description": "Fully determines a generated WordPress plugin: identity, requirements, selected modules, options and glue-code features.",
   "type": "object",
@@ -75,7 +75,7 @@
         "server": {
           "type": "string",
           "format": "uri",
-          "description": "Base URL of the ansariaiwp license API, e.g. https://ansariaiwp.com/api/v1. Never a GitHub URL — private update delivery only."
+          "description": "Base URL of the ansariaiwp license API, e.g. https://ansariai.ir/api/v1. Never a GitHub URL — private update delivery only."
         },
         "productId": {
           "type": "string",

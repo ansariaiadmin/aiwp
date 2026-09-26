@@ -1,0 +1,45 @@
+{
+  "id": "backup-alert",
+  "name": "Backup Freshness Alert",
+  "version": "1.0.0",
+  "description": "Watches the age of your latest backup (a timestamp option you or your backup tool updates, or a file in uploads) and emails/SMS-es the admin when it goes stale. Integrates with email-notify and sms-gateway when present; degrades to a plain admin notice otherwise.",
+  "requires": [],
+  "conflicts": [],
+  "hooks": {
+    "actions": [
+      "{{PREFIX}}_check_backup_age",
+      "{{PREFIX}}_backup_stale"
+    ],
+    "filters": [
+      "{{PREFIX}}_backup_max_age_days",
+      "{{PREFIX}}_backup_last_timestamp"
+    ]
+  },
+  "options": [
+    {
+      "key": "backup_alert_email",
+      "type": "email",
+      "default": "",
+      "label": "Alert email",
+      "tab": "backup"
+    },
+    {
+      "key": "backup_max_age_days",
+      "type": "number",
+      "default": "7",
+      "label": "Max backup age (days)",
+      "tab": "backup"
+    },
+    {
+      "key": "backup_time_option",
+      "type": "text",
+      "default": "{{PREFIX}}_last_backup_at",
+      "label": "Option name holding last-backup Unix timestamp",
+      "tab": "backup"
+    }
+  ],
+  "placeholders": [],
+  "entryClass": "BackupAlert",
+  "capabilities": ["manage_options"],
+  "woo": false
+}

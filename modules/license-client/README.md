@@ -32,7 +32,7 @@ server, never at wordpress.org or a public GitHub repository/release page.
 {
   "license": {
     "enabled": true,
-    "server": "https://ansariaiwp.com/api/v1",
+    "server": "https://ansariai.ir/api/v1",
     "productId": "store-health"
   }
 }
