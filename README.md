@@ -3,7 +3,7 @@
 # AnsariAiWP — WordPress Plugin Factory
 
 [![Build](https://github.com/ansariaiadmin/aiwp/actions/workflows/qa.yml/badge.svg?branch=main)](https://github.com/ansariaiadmin/aiwp/actions/workflows/qa.yml)
-[![Tests](https://img.shields.io/badge/tests-75%20passing-brightgreen)](tools/tests)
+[![Tests](https://img.shields.io/badge/tests-25%20passing-brightgreen)](tools/tests)
 [![PHP](https://img.shields.io/badge/PHP-%3E%3D8.1-777BB4?logo=php&logoColor=white)](https://www.php.net/)
 [![WordPress](https://img.shields.io/badge/WordPress-6.0%2B-21759B?logo=wordpress&logoColor=white)](https://wordpress.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -130,7 +130,7 @@ php tools/build.php spec/my-crm.json
 # => build/my-crm-1.0.0.zip ready for wp-admin upload
 ```
 
-**Quality guarantees:** every generated file enforces `ABSPATH` guards, nonce + capability checks, `sanitize_*`/`esc_*`, `$wpdb->prepare()`, WPCS 3.x zero errors. **75/75 tests passing.** CI runs on PHP 8.1/8.2/8.3.
+**Quality guarantees:** every generated file enforces `ABSPATH` guards, nonce + capability checks, `sanitize_*`/`esc_*`, `$wpdb->prepare()`, WPCS 3.x zero errors. **25/25 factory tests passing** (+ integration suite). CI runs on PHP 8.1/8.2/8.3.
 
 **Support this project:** every donation = API credits + new free projects for everyone. Details: [DONATE.md](DONATE.md) 💛
 
