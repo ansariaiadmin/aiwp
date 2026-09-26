@@ -46,7 +46,7 @@ install.bat
 ```
 http://localhost:3000
 ```
-- ورود: admin@aiwp.dev / Admin@123
+- ورود: admin@ansariai.local / رمز تصادفی (نمایش در انتهای نصب) — Random password shown at end of install
 - سلامت: http://localhost:3000/api/health
 
 **تمام!** 🎉

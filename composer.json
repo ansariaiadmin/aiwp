@@ -3,7 +3,7 @@
     "description": "WordPress Plugin Factory: a spec-driven scaffold + module system for generating production-grade WordPress plugins.",
     "type": "project",
     "license": "MIT",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "authors": [
         {
             "name": "Mohammad Ansari",

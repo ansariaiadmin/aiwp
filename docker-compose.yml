@@ -8,6 +8,10 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://aiwp:aiwp@db:5432/aiwp
+      # Required at boot by src/lib/env.ts (validateEnv via instrumentation.ts).
+      # install.sh generates these into .env; without them the container crash-loops.
+      - SESSION_SECRET=${SESSION_SECRET:?Set SESSION_SECRET in .env (install.sh does this automatically)}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:?Set ENCRYPTION_KEY in .env (install.sh does this automatically)}
     depends_on:
       db:
         condition: service_healthy

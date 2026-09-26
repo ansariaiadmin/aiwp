@@ -1,4 +1,4 @@
-# AiWp — WordPress Plugin Factory + SaaS License Platform
+# AnsariAiWP — WordPress Plugin Factory + SaaS License Platform
 
 [![Build](https://github.com/ansariaiadmin/aiwp/actions/workflows/qa.yml/badge.svg?branch=main)](https://github.com/ansariaiadmin/aiwp/actions/workflows/qa.yml)
 [![Tests](https://img.shields.io/badge/tests-PHPCS%20%2B%20PHPCompatibility-brightgreen)](https://github.com/ansariaiadmin/aiwp/actions)
@@ -27,7 +27,7 @@ chmod +x install.sh
 - **آپدیت:** `./update.sh` (بکاپ خودکار + آپدیت + سلامت چک)
 - **وضعیت:** `./status.sh` | **لاگ:** `./logs.sh` | **توقف:** `./stop.sh`
 
-**ویژگی‌های نسخه v1.0.1 / v0.9.1:**
+**ویژگی‌های نسخه فعلی (v1.0.5):**
 - ✅ نصب خودکار تمیز (clean install) — چک Docker، ساخت .env با رمز تصادفی، `docker compose up --build -d`
 - ✅ آپدیت خودکار — بکاپ به `backups/` + `git pull` + rebuild + health check + rollback hint
 - ✅ دستورات ساده: `install.sh`, `update.sh`, `start.sh`, `stop.sh`, `status.sh`, `logs.sh`, `backup.sh`

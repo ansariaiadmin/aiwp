@@ -8,8 +8,9 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 echo -e "${BLUE}========================================${NC}"
-echo -e "${BLUE}  AiWp — WordPress Plugin Factory + SaaS License Platform${NC}"
-echo -e "${BLUE}  نصب خودکار - Auto Installer v1.0.1${NC}"
+echo -e "${BLUE}  AnsariAiWP — WordPress Plugin Factory + SaaS License Platform${NC}"
+echo -e "${BLUE}  by Mohammad Ansari — https://ansariai.ir${NC}"
+echo -e "${BLUE}  نصب خودکار - Auto Installer v1.0.5${NC}"
 echo -e "${BLUE}  کارخانه افزونه وردپرس + پلتفرم لایسنس${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo ""
@@ -23,33 +24,31 @@ echo -e "${BLUE}[1/6] بررسی سیستم / Checking system...${NC}"
 uname -a
 echo ""
 
-# Check Docker (for web types)
-if [ "web" = "web" ]; then
-  echo -e "${BLUE}[2/6] بررسی Docker / Checking Docker...${NC}"
-  if ! command -v docker &> /dev/null; then
-    echo -e "${RED}Docker نصب نیست / Docker not found${NC}"
-    echo "لطفا Docker را نصب کنید: https://docs.docker.com/get-docker/"
-    echo "Please install Docker: https://docs.docker.com/get-docker/"
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-      echo "در حال تلاش نصب خودکار Docker / Trying auto install..."
-      curl -fsSL https://get.docker.com | sh
-      sudo usermod -aG docker $USER || true
-      echo -e "${YELLOW}لطفا دوباره لاگین کنید و دوباره نصب را اجرا کنید / Please re-login and run again${NC}"
-    fi
-    exit 1
-  else
-    echo -e "${GREEN}✓ Docker نصب است / Docker found: $(docker --version)${NC}"
+# Check Docker
+echo -e "${BLUE}[2/6] بررسی Docker / Checking Docker...${NC}"
+if ! command -v docker &> /dev/null; then
+  echo -e "${RED}Docker نصب نیست / Docker not found${NC}"
+  echo "لطفا Docker را نصب کنید: https://docs.docker.com/get-docker/"
+  echo "Please install Docker: https://docs.docker.com/get-docker/"
+  if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    echo "در حال تلاش نصب خودکار Docker / Trying auto install..."
+    curl -fsSL https://get.docker.com | sh
+    sudo usermod -aG docker $USER || true
+    echo -e "${YELLOW}لطفا دوباره لاگین کنید و دوباره نصب را اجرا کنید / Please re-login and run again${NC}"
   fi
-
-  if ! docker compose version &> /dev/null; then
-    echo -e "${RED}Docker Compose V2 نصب نیست / Docker Compose not found${NC}"
-    echo "لطفا Docker Desktop یا Compose V2 نصب کنید"
-    exit 1
-  else
-    echo -e "${GREEN}✓ Docker Compose: $(docker compose version)${NC}"
-  fi
-  echo ""
+  exit 1
+else
+  echo -e "${GREEN}✓ Docker نصب است / Docker found: $(docker --version)${NC}"
 fi
+
+if ! docker compose version &> /dev/null; then
+  echo -e "${RED}Docker Compose V2 نصب نیست / Docker Compose not found${NC}"
+  echo "لطفا Docker Desktop یا Compose V2 نصب کنید"
+  exit 1
+else
+  echo -e "${GREEN}✓ Docker Compose: $(docker compose version)${NC}"
+fi
+echo ""
 
 # Check Git
 echo -e "${BLUE}[3/6] بررسی Git / Checking Git...${NC}"
@@ -60,23 +59,7 @@ fi
 echo -e "${GREEN}✓ Git: $(git --version)${NC}"
 echo ""
 
-# Check Python/Node based on stack
-echo -e "${BLUE}[4/6] بررسی وابستگی‌ها / Checking dependencies...${NC}"
-if [[ "Next.js + PHP" == *"Python"* ]]; then
-  if command -v python3 &> /dev/null; then
-    echo -e "${GREEN}✓ Python: $(python3 --version)${NC}"
-  else
-    echo -e "${YELLOW}Python3 یافت نشد ولی Docker کافی است / Python not found but Docker is enough${NC}"
-  fi
-fi
-if [[ "Next.js + PHP" == *"Node"* ]] || [[ "Next.js + PHP" == *"Next"* ]] || [[ "Next.js + PHP" == *"Nest"* ]]; then
-  if command -v node &> /dev/null; then
-    echo -e "${GREEN}✓ Node: $(node --version)${NC}"
-  else
-    echo -e "${YELLOW}Node یافت نشد ولی Docker کافی است / Node not found but Docker is enough${NC}"
-  fi
-fi
-echo ""
+echo -e "${BLUE}[4/6] آماده‌سازی محیط / Preparing environment...${NC}"
 
 # Generate .env
 echo -e "${BLUE}[5/6] ساخت فایل تنظیمات / Creating config...${NC}"
@@ -84,29 +67,27 @@ if [ ! -f .env ]; then
   if [ -f .env.example ]; then
     echo -e "${GREEN}کپی .env.example به .env / Copying .env.example to .env${NC}"
     cp .env.example .env
-    # Generate secrets
+    # Generate secrets (hex avoids '/' breaking sed replacements)
     if command -v openssl &> /dev/null; then
-      SECRET=$(openssl rand -base64 32 2>/dev/null | tr -d '\n' | tr -d '/' | cut -c1-32)
-      SECRET2=$(openssl rand -base64 32 2>/dev/null | tr -d '\n' | tr -d '/' | cut -c1-32)
-      # Replace common placeholders
+      SECRET=$(openssl rand -hex 32)
+      SECRET2=$(openssl rand -hex 32)
       if [[ "$OSTYPE" == "darwin"* ]]; then
-        sed -i '' "s/change-me-openssl-rand-base64-32/$SECRET/g" .env 2>/dev/null || true
-        sed -i '' "s/change-me-32-byte-base64/$SECRET/g" .env 2>/dev/null || true
-        sed -i '' "s/change-me/$SECRET/g" .env 2>/dev/null || true
+        sed -i '' "s|change-me-session-secret-32-chars-minimum|$SECRET|g" .env
+        sed -i '' "s|change-me-encryption-key-16-chars-minimum|$SECRET2|g" .env
       else
-        sed -i "s/change-me-openssl-rand-base64-32/$SECRET/g" .env 2>/dev/null || true
-        sed -i "s/change-me-32-byte-base64/$SECRET2/g" .env 2>/dev/null || true
-        sed -i "s/change-me/$SECRET/g" .env 2>/dev/null || true
+        sed -i "s|change-me-session-secret-32-chars-minimum|$SECRET|g" .env
+        sed -i "s|change-me-encryption-key-16-chars-minimum|$SECRET2|g" .env
       fi
       echo -e "${GREEN}✓ رمزهای تصادفی ساخته شد / Random secrets generated${NC}"
     else
-      echo -e "${YELLOW}openssl یافت نشد، رمزها را دستی عوض کنید / openssl not found, change secrets manually${NC}"
+      echo -e "${RED}openssl یافت نشد — بدون آن app بوت نمی‌شود / openssl not found, app cannot boot${NC}"
+      exit 1
     fi
   else
-    echo -e "${YELLOW}.env.example وجود ندارد، .env خالی می‌سازیم / .env.example not found, creating empty .env${NC}"
-    touch .env
+    echo -e "${RED}.env.example وجود ندارد / .env.example not found${NC}"
+    exit 1
   fi
-  echo -e "${GREEN}✓ فایل .env ساخته شد / .env created - لطفا آن را ویرایش کنید اگر نیاز است${NC}"
+  echo -e "${GREEN}✓ فایل .env ساخته شد / .env created${NC}"
 else
   echo -e "${BLUE}.env از قبل وجود دارد / .env already exists, skipping${NC}"
 fi
@@ -114,50 +95,49 @@ echo ""
 
 # Build and start
 echo -e "${BLUE}[6/6] ساخت و اجرا / Building and starting...${NC}"
-if [ "web" = "web" ]; then
-  if [ -f docker-compose.yml ]; then
-    echo "docker compose up --build -d"
-    docker compose up --build -d
-    echo ""
-    echo -e "${BLUE}صبر برای آماده شدن / Waiting to be ready (30s)...${NC}"
-    for i in {1..30}; do
-      echo -n "."
-      sleep 2
-      # Check health if curl exists
-      if command -v curl &> /dev/null; then
-        if curl -sf http://localhost:3000/api/health >/dev/null 2>&1 || curl -sf http://localhost:3000 >/dev/null 2>&1 || curl -sf http://localhost:8000 >/dev/null 2>&1 || curl -sf http://localhost:8080 >/dev/null 2>&1; then
-          echo ""
-          echo -e "${GREEN}✓ سرویس آماده است / Service ready!${NC}"
-          break
-        fi
+ADMIN_PASS=$(openssl rand -hex 6 2>/dev/null || echo "ChangeMe-$(date +%s)")
+if [ -f docker-compose.yml ]; then
+  echo "docker compose up --build -d"
+  docker compose up --build -d
+  echo ""
+  echo -e "${BLUE}صبر برای آماده شدن / Waiting to be ready...${NC}"
+  READY=0
+  for i in {1..45}; do
+    echo -n "."
+    sleep 2
+    if command -v curl &> /dev/null; then
+      if curl -sf http://localhost:3000/api/health >/dev/null 2>&1; then
+        echo ""
+        echo -e "${GREEN}✓ سرویس آماده است / Service ready!${NC}"
+        READY=1
+        break
       fi
-    done
-    echo ""
-    docker compose ps
-  else
-    echo -e "${YELLOW}docker-compose.yml یافت نشد / not found, trying npm/pip${NC}"
-    if [ -f package.json ]; then
-      npm install
-      npm run build || true
-      echo "برای اجرا: npm run dev / To run: npm run dev"
-    elif [ -f requirements.txt ]; then
-      python3 -m venv .venv || true
-      source .venv/bin/activate 2>/dev/null || true
-      pip install -r requirements.txt
-      echo "برای اجرا: uvicorn app.main:app --reload / To run: uvicorn..."
     fi
+  done
+  echo ""
+  docker compose ps
+
+  # Run DB migrations inside the app container (idempotent).
+  echo -e "${BLUE}مهاجرت دیتابیس / Running database migrations...${NC}"
+  if docker compose exec -T platform node scripts/migrate.mjs 2>/dev/null; then
+    echo -e "${GREEN}✓ مهاجرت انجام شد / Migrations applied${NC}"
+  else
+    echo -e "${YELLOW}مهاجرت خودکار انجام نشد؛ بعداً اجرا کنید: docker compose exec platform node scripts/migrate.mjs${NC}"
+    echo -e "${YELLOW}Auto-migrate failed; run manually later: docker compose exec platform node scripts/migrate.mjs${NC}"
+  fi
+
+  # Seed the first admin account with a random password.
+  echo -e "${BLUE}ساخت حساب ادمین / Seeding admin account...${NC}"
+  if docker compose exec -T platform node scripts/seed-admin.mjs \
+       --email "admin@ansariai.local" --password "$ADMIN_PASS" --name "AnsariAiWP Admin" 2>/dev/null; then
+    echo -e "${GREEN}✓ ادمین ساخته شد / Admin created${NC}"
+  else
+    echo -e "${YELLOW}ساخت ادمین خودکار انجام نشد؛ راهنما: docs/USER_GUIDE_EN.md / Admin seed skipped${NC}"
+    ADMIN_PASS="(seed failed — see docs)"
   fi
 else
-  # CLI type
-  if [ -f requirements.txt ]; then
-    echo "نصب Python وابستگی‌ها / Installing Python deps..."
-    python3 -m venv .venv 2>/dev/null || true
-    source .venv/bin/activate 2>/dev/null || true
-    pip install -e . 2>/dev/null || pip install -r requirements.txt
-    echo -e "${GREEN}✓ نصب شد / Installed${NC}"
-    echo "برای تست: pytest -q / To test: pytest -q"
-    echo "برای راهنما: ./project-robots --help"
-  fi
+  echo -e "${RED}docker-compose.yml یافت نشد / not found in $(pwd)${NC}"
+  exit 1
 fi
 
 echo ""
@@ -167,8 +147,9 @@ echo -e "${GREEN}========================================${NC}"
 echo ""
 echo -e "${BLUE}اطلاعات دسترسی / Access Info:${NC}"
 echo -e "  آدرس / URL: http://localhost:3000"
-echo -e "  ورود / Login: admin@aiwp.dev / Admin@123"
+echo -e "  ورود / Login: admin@ansariai.local / ${ADMIN_PASS}"
 echo -e "  سلامت / Health: http://localhost:3000/api/health"
+echo -e "${YELLOW}⚠️ همین رمز را ذخیره کنید — بعداً قابل بازیابی نیست / Save this password now; it cannot be recovered later.${NC}"
 echo ""
 echo -e "${BLUE}دستورات مفید / Useful Commands:${NC}"
 echo -e "  ./status.sh  - وضعیت / Status"

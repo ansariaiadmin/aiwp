@@ -62,6 +62,25 @@ function assert_contains(string $haystack, string $needle, string $message): voi
     }
 }
 
+/**
+ * Pure-PHP recursive directory delete. Avoids exec('rm -rf') so the suite
+ * also runs under tools/php-wasm (no shell functions available there).
+ */
+function rrmdir(string $dir): void
+{
+    if (!is_dir($dir)) {
+        return;
+    }
+    foreach ((array) scandir($dir) as $entry) {
+        if ($entry === '.' || $entry === '..') {
+            continue;
+        }
+        $path = $dir . '/' . $entry;
+        is_dir($path) ? rrmdir($path) : @unlink($path);
+    }
+    @rmdir($dir);
+}
+
 $specPath = $root . '/spec/examples/store-health.json';
 $spec     = json_decode((string) file_get_contents($specPath), true, 512, JSON_THROW_ON_ERROR);
 
@@ -335,7 +354,7 @@ it('blocks-compat can be composed into a plugin', function () use ($specPath) {
     assert_true(is_file($expectedFile), "composed BlocksCompat.php missing at $expectedFile");
     $body = (string) file_get_contents($expectedFile);
     assert_contains($body, 'woocommerce_blocks_loaded', 'composed file missing hook');
-    exec('rm -rf ' . escapeshellarg($outDir));
+    rrmdir($outDir);
 });
 
 it('blocks-compat placeholder substitution works (PREFIX/TEXT_DOMAIN)', function () use ($specPath) {
@@ -357,7 +376,7 @@ it('blocks-compat placeholder substitution works (PREFIX/TEXT_DOMAIN)', function
     assert_true(!str_contains($body, '{{PREFIX}}'), 'PREFIX placeholder leaked');
     assert_true(!str_contains($body, '{{TEXT_DOMAIN}}'), 'TEXT_DOMAIN placeholder leaked');
     assert_contains($body, 'my_prefix_test', 'prefix substitution failed');
-    exec('rm -rf ' . escapeshellarg($outDir));
+    rrmdir($outDir);
 });
 
 // -------------------------------------------------------------------------
@@ -460,7 +479,7 @@ it('csv-export e2e: composed plugin contains CsvExport with correct prefix', fun
     $body = (string) file_get_contents($file);
     assert_contains($body, 'ansariai_csvp', 'prefix not substituted in CsvExport');
     assert_true(!str_contains($body, '{{PREFIX}}'), 'PREFIX leaked in CsvExport');
-    exec('rm -rf ' . escapeshellarg($outDir));
+    rrmdir($outDir);
 });
 // -------------------------------------------------------------------------
 $colour = $failed === 0 ? "\033[32m" : "\033[31m";

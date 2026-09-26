@@ -1,3 +1,18 @@
+# Changelog — AnsariAiWP
+
+All notable changes to this project are documented here.
+Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning follows [SemVer](https://semver.org/).
+
+## [v1.0.5] - 2026-09-26 — Clean-Install Hardening
+
+### Fixed
+- **docker-compose.yml**: `SESSION_SECRET`/`ENCRYPTION_KEY` now passed to the platform container (fail-fast with a clear message if `.env` is missing) — previously the app crash-looped on boot because `src/lib/env.ts` requires them.
+- **.env.example**: rewritten to contain only variables the code actually reads; removed dead vars (`NEXTAUTH_*`, `SMTP_*`, `OPENAI_*`, `WP_ADMIN_*`, `HOSTNAME`) that never existed in the codebase.
+- **install.sh**: removed dead conditional branches (`[ "web" = "web" ]`, `"Next.js + PHP" == *Node*`); secrets generated with `openssl rand -hex` (no more `/` corrupting `sed` replacements); added automatic DB migration (`scripts/migrate.mjs`) and admin seeding (`scripts/seed-admin.mjs`) with a random password shown once at the end of install.
+- **Docs honesty**: removed the false default credential `admin@aiwp.dev / Admin@123` from INSTALL.md and both user guides — no default password exists by design.
+- **CHANGELOG.md**: restored proper Keep-a-Changelog structure (header was buried mid-file).
+- **README.md**: title aligned with the AnsariAiWP product name.
+
 ## [v1.0.4] - 2026-09-26 — AnsariAiWP Branding · About · Donation System
 
 ### Added
@@ -31,9 +46,6 @@
 - README badge+mermaid+quickstart+sample output + non-technical section
 - INSTALL.md + docs/USER_GUIDE_FA.md + docs/USER_GUIDE_EN.md
 
-# Changelog — aiwp
-
-All notable changes to this project will be documented in this file.
 
 ## [1.0.0] - 2026-09-24
 ### Added
