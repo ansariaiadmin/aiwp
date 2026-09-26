@@ -1,3 +1,16 @@
+## [v1.0.4] - 2026-09-26 — AnsariAiWP Branding · About · Donation System
+
+### Added
+- **Product name: AnsariAiWP** — author block + ABOUT.md (author, website ansariai.ir, Telegram @ansariaiadmin, copyright notice kept in forks)
+- **DONATE.md**: donation = new projects for everyone — 100% of donations goes to API credits & building new tools, nothing personal (BTC/ETH-TRON/GitHub Sponsors/Pro license)
+- README: Author section, Support/Donate section, accurate dual-license statement
+- composer.json: `version`, `authors` (Mohammad Ansari), `funding` (GitHub Sponsors + DONATE.md)
+
+### Fixed
+- License consistency: LICENSE file is MIT but composer.json declared GPL-2.0-or-later → now MIT (factory) with generated plugins GPL-2.0-or-later (documented)
+- LICENSE copyright holder: ansariaiadmin → Mohammad Ansari (ansariai.ir)
+- README version header said v1.0.3 while CHANGELOG had no such release → aligned to real releases
+
 ## [v1.0.1] - 2026-09-24 - Non-Technical Auto Install + Auto Update Edition
 
 ### Added - نصب خودکار برای افراد غیر فنی

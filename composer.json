@@ -2,7 +2,25 @@
     "name": "ansariaiwp/wp-plugin-factory",
     "description": "WordPress Plugin Factory: a spec-driven scaffold + module system for generating production-grade WordPress plugins.",
     "type": "project",
-    "license": "GPL-2.0-or-later",
+    "license": "MIT",
+    "version": "1.0.4",
+    "authors": [
+        {
+            "name": "Mohammad Ansari",
+            "homepage": "https://ansariai.ir",
+            "role": "Creator & Maintainer"
+        }
+    ],
+    "funding": [
+        {
+            "type": "github",
+            "url": "https://github.com/sponsors/ansariaiadmin"
+        },
+        {
+            "type": "other",
+            "url": "https://github.com/ansariaiadmin/aiwp/blob/main/DONATE.md"
+        }
+    ],
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {
