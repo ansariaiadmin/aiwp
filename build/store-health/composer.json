@@ -1,0 +1,14 @@
+{
+    "name": "generated/store-health",
+    "description": "Daily WooCommerce store health digest with configurable alert thresholds.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=8.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "AnsariAi\\\\StoreHealth\\\\": "src/"
+        }
+    }
+}

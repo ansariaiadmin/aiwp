@@ -7,8 +7,8 @@
   "textDomain": "store-health",
   "version": "1.0.0",
   "author": {
-    "name": "AnsariAi",
-    "uri": "https://ansariaiwp.com"
+    "name": "Mohammad Ansari",
+    "uri": "https://ansariai.ir"
   },
   "requires": {
     "php": "8.1",
@@ -17,7 +17,7 @@
   },
   "license": {
     "enabled": true,
-    "server": "https://ansariaiwp.com/api/v1",
+    "server": "https://ansariai.ir/api/v1",
     "productId": "store-health"
   },
   "modules": [
@@ -31,9 +31,39 @@
     "license-client"
   ],
   "options": [
-    { "key": "report_email", "type": "email", "label": "Report recipient", "default": "", "tab": "general" },
-    { "key": "low_stock_threshold", "type": "number", "label": "Low stock threshold", "default": 5, "tab": "general" },
-    { "key": "enable_daily_digest", "type": "checkbox", "label": "Send daily digest", "default": true, "tab": "general" }
+    {
+      "key": "report_email",
+      "type": "email",
+      "label": "Report recipient",
+      "default": "",
+      "tab": "general",
+      "description": "Where the weekly health report is delivered.",
+      "help": "Enter one or more <b>email addresses</b> that should receive store health reports.<br><ul><li>Separate multiple addresses with a comma.</li><li>Each address must be valid — bounced mail is silently dropped by your host.</li><li>Prefer a group mailbox (e.g. <code>ops@…</code>) so reports survive staff changes.</li></ul>",
+      "example": "owner@example.com, ops@example.com",
+      "illustration": "email"
+    },
+    {
+      "key": "low_stock_threshold",
+      "type": "number",
+      "label": "Low stock threshold",
+      "default": 5,
+      "tab": "general",
+      "description": "Products at or below this stock level are flagged.",
+      "help": "A product is reported as <i>low stock</i> when its remaining quantity is <b>less than or equal to</b> this number.<br><ul><li>Use <code>0</code> to flag only out-of-stock items.</li><li>High-turnover stores typically set 5–10; slow luxury stores 1–2.</li></ul>",
+      "example": "5",
+      "illustration": "chart"
+    },
+    {
+      "key": "enable_daily_digest",
+      "type": "checkbox",
+      "label": "Send daily digest",
+      "default": true,
+      "tab": "general",
+      "description": "Send a short summary every morning instead of only the weekly report.",
+      "help": "When enabled, a compact digest email arrives <b>every day at 07:00 site time</b> summarising overnight orders, low-stock products and failed webhooks.<br><br>Turn this <i>off</i> if you already watch the dashboard daily — too many emails is the #1 reason reports get ignored.",
+      "example": "On for busy stores, Off for small shops",
+      "illustration": "bell"
+    }
   ],
   "features": [
     "Once a day, collect order count/revenue for the last 24h, low-stock product count, and failed-payment count, then email the report_email address using the email-notify module and store a CSV snapshot via csv-export.",

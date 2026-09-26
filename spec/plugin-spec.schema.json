@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ansariaiwp.com/schema/plugin-spec.schema.json",
+  "$id": "https://ansariai.ir/schema/plugin-spec.schema.json",
   "title": "WordPress Plugin Factory — Plugin Spec",
   "description": "Fully determines a generated WordPress plugin: identity, requirements, selected modules, options and glue-code features.",
   "type": "object",
@@ -68,7 +68,7 @@
     "wporg": {
       "type": "boolean",
       "default": false,
-      "description": "Target mode: true = build is intended for wordpress.org submission. Enforces hard review rules at build time: license-client module is forbidden (no commercial gating in wp.org plugins), readme.txt must contain real tags and a full Description/FAQ, and no external update/licensing endpoints may be referenced. Default false = private/commercial distribution via ansariaiwp.com."
+      "description": "Target mode: true = build is intended for wordpress.org submission. Enforces hard review rules at build time: license-client module is forbidden (no commercial gating in wp.org plugins), readme.txt must contain real tags and a full Description/FAQ, and no external update/licensing endpoints may be referenced. Default false = private/commercial distribution via ansariai.ir."
     },
     "readme": {
       "type": "object",
@@ -114,7 +114,7 @@
         "server": {
           "type": "string",
           "format": "uri",
-          "description": "Base URL of the ansariaiwp license API, e.g. https://ansariaiwp.com/api/v1. Never a GitHub URL — private update delivery only."
+          "description": "Base URL of the ansariai.ir license API, e.g. https://ansariai.ir/api/v1. Never a GitHub URL — private update delivery only."
         },
         "productId": {
           "type": "string",
@@ -163,6 +163,26 @@
             "type": "string",
             "description": "Settings tab id this field belongs to. Defaults to 'general'.",
             "default": "general"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Inline help text shown under the control and inside the help popover."
+          },
+          "help": {
+            "type": "string",
+            "maxLength": 2000,
+            "description": "Long-form guidance rendered in the animated (?) help popover next to the field label. Supports a simple markup subset: <b>, <i>, <code>, <ul>/<li>, <br>."
+          },
+          "example": {
+            "type": "string",
+            "maxLength": 300,
+            "description": "Concrete example value shown as placeholder and in the help popover ('For example: …')."
+          },
+          "illustration": {
+            "type": "string",
+            "enum": ["email", "bell", "lock", "chart", "clock", "database", "globe", "shield", "sparkles", "list"],
+            "description": "Named inline-SVG illustration shown at the top of the help popover for this field."
           }
         }
       }

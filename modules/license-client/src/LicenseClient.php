@@ -2,7 +2,7 @@
 /**
  * License Client module.
  *
- * Talks to the ansariaiwp license server to activate/validate/deactivate a
+ * Talks to the ansariai.ir license server to activate/validate/deactivate a
  * license key, and delivers private plugin updates via the
  * 'site_transient_update_plugins' + 'plugins_api' filters — never a
  * wordpress.org or GitHub URL is exposed to the site owner.

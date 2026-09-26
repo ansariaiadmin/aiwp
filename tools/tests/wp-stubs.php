@@ -207,6 +207,38 @@ function wp_kses_post(string $data): string
     return $data;
 }
 
+/**
+ * Minimal faithful-enough wp_kses for the tests: strips every tag not in
+ * the allowed whitelist (dropping all its attributes) and leaves text and
+ * encoded entities untouched. Enough to verify the guided-help markup
+ * sanitizer without pulling in WordPress core's full KSES engine.
+ */
+function wp_kses(string $string, array $allowed_html): string
+{
+    $allowed_tags = strtolower(implode('|', array_keys($allowed_html)));
+
+    if ('' === $allowed_tags) {
+        return strip_tags($string);
+    }
+
+    // Replace <tag ...> with <tag> for allowed tags, drop everything else.
+    $string = preg_replace_callback(
+        '/<\/?([a-zA-Z][a-zA-Z0-9]*)\b[^>]*>/',
+        static function (array $m) use ($allowed_tags): string {
+            $tag = strtolower($m[1]);
+
+            if (!preg_match('/\b' . preg_quote($tag, '/') . '\b/', $allowed_tags)) {
+                return '';
+            }
+
+            return str_starts_with($m[0], '</') ? '</' . $tag . '>' : '<' . $tag . '>';
+        },
+        $string
+    ) ?? '';
+
+    return $string;
+}
+
 function wp_unslash(mixed $value): mixed
 {
     return is_string($value) ? stripslashes($value) : $value;

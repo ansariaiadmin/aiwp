@@ -48,8 +48,8 @@ function wppf_placeholder_map( array $spec ): array {
         'PREFIX_UPPER'            => Support::upperSnake($prefix),
         'TEXT_DOMAIN'             => (string) $spec['textDomain'],
         'VERSION'                 => (string) $spec['version'],
-        'AUTHOR_NAME'             => (string) ( $spec['author']['name'] ?? 'AnsariAi' ),
-        'AUTHOR_URI'              => (string) ( $spec['author']['uri'] ?? 'https://ansariaiwp.com' ),
+        'AUTHOR_NAME'             => (string) ( $spec['author']['name'] ?? 'Mohammad Ansari' ),
+        'AUTHOR_URI'              => (string) ( $spec['author']['uri'] ?? 'https://ansariai.ir' ),
         'REQUIRES_PHP'            => (string) ( $requires['php'] ?? '8.1' ),
         'REQUIRES_WP'             => (string) ( $requires['wp'] ?? '6.5' ),
         'REQUIRES_WOO'            => (string) ( $requires['woo'] ?? '' ),
@@ -200,12 +200,19 @@ function wppf_settings_fields( array $spec ): array {
 
     foreach ((array) ( $spec['options'] ?? [] ) as $option) {
         $fields[] = [
-            'key'     => (string) $option['key'],
-            'type'    => (string) $option['type'],
-            'label'   => (string) ( $option['label'] ?? ucwords(str_replace('_', ' ', (string) $option['key'])) ),
-            'default' => $option['default'] ?? '',
-            'choices' => (array) ( $option['choices'] ?? [] ),
-            'tab'     => (string) ( $option['tab'] ?? 'general' ),
+            'key'          => (string) $option['key'],
+            'type'         => (string) $option['type'],
+            'label'        => (string) ( $option['label'] ?? ucwords(str_replace('_', ' ', (string) $option['key'])) ),
+            'default'      => $option['default'] ?? '',
+            'choices'      => (array) ( $option['choices'] ?? [] ),
+            'tab'          => (string) ( $option['tab'] ?? 'general' ),
+            // Inline guidance surfaced by the Settings scaffold: short
+            // description, long-form help popover text, a concrete example
+            // and an optional named SVG illustration key. All optional.
+            'description'  => (string) ( $option['description'] ?? '' ),
+            'help'         => (string) ( $option['help'] ?? '' ),
+            'example'      => (string) ( $option['example'] ?? '' ),
+            'illustration' => (string) ( $option['illustration'] ?? '' ),
         ];
     }
 
@@ -479,7 +486,7 @@ function wppf_generate_pot( string $outDir, array $spec ): void {
 
     $slug  = (string) $spec['slug'];
     $lines = [
-        '# Copyright (C) ' . gmdate('Y') . ' ' . (string) ( $spec['author']['name'] ?? 'AnsariAi' ),
+        '# Copyright (C) ' . gmdate('Y') . ' ' . (string) ( $spec['author']['name'] ?? 'Mohammad Ansari' ),
         '# This file is distributed under the GPL-2.0-or-later license.',
         'msgid ""',
         'msgstr ""',

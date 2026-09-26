@@ -1,0 +1,395 @@
+<?php
+/**
+ * Tabbed Settings API wrapper. Renders/sanitizes the fields declared in the
+ * plugin spec's "options" array (baked into module-manifest.php as
+ * SETTINGS_FIELDS) plus any fields modules contribute via the
+ * 'ansariai_sh_settings_fields' filter.
+ *
+ * @package AnsariAi\StoreHealth
+ */
+
+declare(strict_types=1);
+
+namespace AnsariAi\StoreHealth;
+
+use AnsariAi\StoreHealth\Support\Guard;
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+final class Settings {
+
+	private const OPTION_GROUP = 'ansariai_sh_settings';
+	private const PAGE_SLUG    = 'store-health-settings';
+
+	/** @var array<int,array<string,mixed>>|null */
+	private static ?array $fields = null;
+
+	public function register(): void {
+		add_action( 'admin_menu', array( $this, 'add_menu' ) );
+		add_action( 'admin_init', array( $this, 'register_settings' ) );
+	}
+
+	public function add_menu(): void {
+		add_options_page(
+			esc_html__( 'Store Health Assistant', 'store-health' ),
+			esc_html__( 'Store Health Assistant', 'store-health' ),
+			'manage_options',
+			self::PAGE_SLUG,
+			array( $this, 'render_page' )
+		);
+	}
+
+	public function register_settings(): void {
+		register_setting(
+			self::OPTION_GROUP,
+			self::OPTION_GROUP,
+			array( 'sanitize_callback' => array( $this, 'sanitize' ) )
+		);
+
+		foreach ( $this->tabs() as $tab_id => $tab_label ) {
+			add_settings_section(
+				"ansariai_sh_section_{$tab_id}",
+				$tab_label,
+				'__return_false',
+				self::PAGE_SLUG . '_' . $tab_id
+			);
+		}
+
+		foreach ( self::fields() as $field ) {
+			add_settings_field(
+				$field['key'],
+				esc_html( $field['label'] ) . $this->help_button( $field ),
+				array( $this, 'render_field' ),
+				self::PAGE_SLUG . '_' . $field['tab'],
+				"ansariai_sh_section_{$field['tab']}",
+				$field
+			);
+		}
+	}
+
+	/**
+	 * Renders the (?) help trigger plus its animated popover for a field.
+	 * The popover contains an optional inline-SVG illustration, the
+	 * long-form help text (a safe markup subset), and a concrete example.
+	 * Interaction (toggle/close) lives in assets/js/admin.js; styling and
+	 * transitions in assets/css/admin.css. Returns '' when the field has
+	 * no guidance to show, so plain fields are untouched.
+	 *
+	 * @param array<string,mixed> $field
+	 */
+	private function help_button( array $field ): string {
+		$help       = (string) ( $field['help'] ?? '' );
+		$example    = (string) ( $field['example'] ?? '' );
+		$desc       = (string) ( $field['description'] ?? '' );
+		$illustrate = (string) ( $field['illustration'] ?? '' );
+
+		if ( '' === $help && '' === $example && '' === $desc ) {
+			return '';
+		}
+
+		$id   = 'ansariai_sh-help-' . sanitize_key( (string) $field['key'] );
+		$html = sprintf(
+			' <button type="button" class="ansariai_sh-help-trigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="%s" data-help-target="%s" title="%s"><span class="dashicons dashicons-editor-help" aria-hidden="true"></span><span class="screen-reader-text">%s</span></button>',
+			esc_attr( $id ),
+			esc_attr( $id ),
+			esc_attr__( 'Show help', 'store-health' ),
+			esc_html__( 'Show help', 'store-health' )
+		);
+
+		$html .= sprintf( '<div class="ansariai_sh-help-pop" id="%s" role="dialog" hidden>', esc_attr( $id ) );
+		$html .= '<div class="ansariai_sh-help-pop-inner">';
+
+		if ( '' !== $illustrate ) {
+			$html .= $this->help_illustration( $illustrate );
+		}
+
+		$html .= sprintf( '<h3 class="ansariai_sh-help-title">%s</h3>', esc_html( (string) $field['label'] ) );
+
+		if ( '' !== $help ) {
+			$html .= '<div class="ansariai_sh-help-body">' . $this->sanitize_help_markup( $help ) . '</div>';
+		}
+
+		if ( '' !== $desc ) {
+			$html .= sprintf( '<p class="ansariai_sh-help-desc">%s</p>', esc_html( $desc ) );
+		}
+
+		if ( '' !== $example ) {
+			$html .= sprintf(
+				'<p class="ansariai_sh-help-example"><strong>%s</strong> <code>%s</code></p>',
+				esc_html__( 'For example:', 'store-health' ),
+				esc_html( $example )
+			);
+		}
+
+		$html .= '</div></div>';
+
+		return $html;
+	}
+
+	/**
+	 * Whitelist-based sanitizer for the small inline markup subset allowed
+	 * inside spec "help" strings: <b> <i> <em> <strong> <code> <ul> <ol>
+	 * <li> <br> <a href>. Everything else is stripped; attributes except a
+	 * safe href on <a> are removed.
+	 */
+	private function sanitize_help_markup( string $help ): string {
+		$allowed = array(
+			'b'      => array(),
+			'i'      => array(),
+			'em'     => array(),
+			'strong' => array(),
+			'code'   => array(),
+			'ul'     => array(),
+			'ol'     => array(),
+			'li'     => array(),
+			'br'     => array(),
+			'a'      => array(
+				'href'   => true,
+				'target' => true,
+				'rel'    => true,
+			),
+		);
+
+		return wp_kses( $help, $allowed );
+	}
+
+	/**
+	 * Named inline-SVG illustrations (decorative, aria-hidden). Keys come
+	 * from the spec's "illustration" enum; unknown keys render nothing.
+	 */
+	private function help_illustration( string $name ): string {
+		$body = array(
+			'email'     => '<rect x="2" y="4" width="16" height="12" rx="2"/><path d="m2 6 8 6 8-6"/>',
+			'bell'      => '<path d="M9 2c-2.5 0-4 2-4 4.5C5 11 3 12 3 14h14c0-2-2-3-2-7.5C15 4 13.5 2 11 2z" transform="translate(-1)"/><path d="M9.5 18a2 2 0 0 0 3 0"/>',
+			'lock'      => '<rect x="4" y="9" width="12" height="9" rx="2"/><path d="M7 9V6a3.5 3.5 0 0 1 7 0v3"/>',
+			'chart'     => '<path d="M3 17l5-6 4 3 6-8"/><path d="M3 20h16"/>',
+			'clock'     => '<circle cx="10" cy="10" r="7"/><path d="M10 6v4l3 2"/>',
+			'database'  => '<ellipse cx="10" cy="5" rx="7" ry="2.5"/><path d="M3 5v10c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5V5"/><path d="M3 10c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5"/>',
+			'globe'     => '<circle cx="10" cy="10" r="7"/><path d="M3 10h14M10 3c2.5 2 2.5 12 0 14M10 3c-2.5 2-2.5 12 0 14"/>',
+			'shield'    => '<path d="M10 2 4 4.5V9c0 4.5 2.8 7.6 6 9 3.2-1.4 6-4.5 6-9V4.5z"/><path d="m7.5 10 2 2 3.5-4"/>',
+			'sparkles'  => '<path d="M10 2l1.5 4L16 7.5 11.5 9 10 13l-1.5-4L4 7.5 8.5 6zM16 13l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/>',
+			'list'      => '<path d="M4 5h12M4 10h12M4 15h8"/><circle cx="2.5" cy="5" r=".5"/><circle cx="2.5" cy="10" r=".5"/><circle cx="2.5" cy="15" r=".5"/>',
+		)[ $name ] ?? '';
+
+		if ( '' === $body ) {
+			return '';
+		}
+
+		return sprintf(
+			'<svg class="ansariai_sh-help-art" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">%s</svg>',
+			$body
+		);
+	}
+
+	/**
+	 * @return array<string,string> tab id => tab label
+	 */
+	private function tabs(): array {
+		/**
+		 * Human-readable labels for settings tabs. A module (or glue code) that
+		 * contributes fields under a custom tab should register its label here
+		 * via the 'ansariai_sh_settings_tab_labels' filter; otherwise the tab id
+		 * is title-cased as a fallback.
+		 *
+		 * @var array<string,string>
+		 */
+		$labels = (array) apply_filters( 'ansariai_sh_settings_tab_labels', array() );
+
+		$tabs = array( 'general' => __( 'General', 'store-health' ) );
+
+		foreach ( self::fields() as $field ) {
+			if ( ! isset( $tabs[ $field['tab'] ] ) ) {
+				$tabs[ $field['tab'] ] = $labels[ $field['tab'] ] ?? ucwords( str_replace( array( '-', '_' ), ' ', $field['tab'] ) );
+			}
+		}
+
+		/**
+		 * Filters the settings tabs shown on the settings screen.
+		 *
+		 * @param array<string,string> $tabs tab id => label.
+		 */
+		return (array) apply_filters( 'ansariai_sh_settings_tabs', $tabs );
+	}
+
+	/**
+	 * @return array<int,array<string,mixed>>
+	 */
+	private static function fields(): array {
+		if ( null !== self::$fields ) {
+			return self::$fields;
+		}
+
+		$manifest_fields = \AnsariAi\StoreHealth\Plugin::settings_fields();
+
+		/**
+		 * Filters the full list of settings fields. Modules can append
+		 * their own fields here instead of hardcoding a settings screen.
+		 *
+		 * @param array<int,array<string,mixed>> $fields
+		 */
+		self::$fields = (array) apply_filters( 'ansariai_sh_settings_fields', $manifest_fields );
+
+		return self::$fields;
+	}
+
+	public function render_page(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$tabs       = $this->tabs();
+		$active_tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : (string) array_key_first( $tabs ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! isset( $tabs[ $active_tab ] ) ) {
+			$active_tab = (string) array_key_first( $tabs );
+		}
+		?>
+		<div class="wrap">
+			<h1><?php echo esc_html__( 'Store Health Assistant', 'store-health' ); ?></h1>
+			<h2 class="nav-tab-wrapper">
+				<?php foreach ( $tabs as $tab_id => $tab_label ) : ?>
+					<a
+						href="
+						<?php
+						echo esc_url(
+							add_query_arg(
+								array(
+									'page' => self::PAGE_SLUG,
+									'tab'  => $tab_id,
+								),
+								admin_url( 'options-general.php' )
+							)
+						);
+						?>
+								"
+						class="nav-tab <?php echo $active_tab === $tab_id ? 'nav-tab-active' : ''; ?>"
+					><?php echo esc_html( $tab_label ); ?></a>
+				<?php endforeach; ?>
+			</h2>
+			<form action="options.php" method="post">
+				<?php
+				settings_fields( self::OPTION_GROUP );
+				do_settings_sections( self::PAGE_SLUG . '_' . $active_tab );
+				submit_button();
+				?>
+			</form>
+		</div>
+		<?php
+	}
+
+	/**
+	 * @param array<string,mixed> $field
+	 */
+	public function render_field( array $field ): void {
+		$option = get_option( self::OPTION_GROUP, array() );
+		$value  = is_array( $option ) && isset( $option[ $field['key'] ] ) ? $option[ $field['key'] ] : ( $field['default'] ?? '' );
+		$name   = self::OPTION_GROUP . '[' . $field['key'] . ']';
+
+		switch ( $field['type'] ) {
+			case 'checkbox':
+				printf(
+					'<label><input type="checkbox" name="%1$s" value="1" %2$s /> %3$s</label>',
+					esc_attr( $name ),
+					checked( (bool) $value, true, false ),
+					esc_html( $field['description'] ?? '' )
+				);
+				break;
+
+			case 'select':
+				printf( '<select name="%s">', esc_attr( $name ) );
+				foreach ( (array) ( $field['choices'] ?? array() ) as $choice ) {
+					printf(
+						'<option value="%1$s" %2$s>%1$s</option>',
+						esc_attr( $choice ),
+						selected( $value, $choice, false )
+					);
+				}
+				echo '</select>';
+				break;
+
+			case 'textarea':
+				printf(
+					'<textarea name="%1$s" rows="4" class="large-text">%2$s</textarea>',
+					esc_attr( $name ),
+					esc_textarea( (string) $value )
+				);
+				break;
+
+			case 'password':
+				printf(
+					'<input type="password" name="%1$s" value="%2$s" class="regular-text" autocomplete="new-password" />',
+					esc_attr( $name ),
+					esc_attr( (string) $value )
+				);
+				break;
+
+			case 'number':
+				printf(
+					'<input type="number" name="%1$s" value="%2$s" class="small-text" />',
+					esc_attr( $name ),
+					esc_attr( (string) $value )
+				);
+				break;
+
+			case 'email':
+			case 'url':
+			case 'text':
+			default:
+				printf(
+					'<input type="%1$s" name="%2$s" value="%3$s" class="regular-text" />',
+					esc_attr( 'email' === $field['type'] ? 'email' : ( 'url' === $field['type'] ? 'url' : 'text' ) ),
+					esc_attr( $name ),
+					esc_attr( (string) $value )
+				);
+				break;
+		}
+	}
+
+	/**
+	 * @param mixed $input Raw settings array from $_POST via the Settings API.
+	 *
+	 * @return array<string,mixed>
+	 */
+	public function sanitize( $input ): array {
+		if ( ! Guard::current_user_can( 'manage_options' ) ) {
+			return (array) get_option( self::OPTION_GROUP, array() );
+		}
+
+		$input = is_array( $input ) ? $input : array();
+		$map   = array();
+
+		foreach ( self::fields() as $field ) {
+			$map[ $field['key'] ] = $field['type'];
+		}
+
+		return Guard::sanitize_array( $input, $map );
+	}
+
+	public static function get( string $key, mixed $fallback = null ): mixed {
+		// A site owner/host may define ANSARIAI_SH_<KEY> in wp-config.php to
+		// override any setting without touching the database -- documented
+		// per-plugin in the generated .env.example-style note. Constants
+		// always win over the stored option, matching WordPress's own
+		// convention for e.g. DISALLOW_FILE_EDIT-style overrides.
+		$constant_name = 'ANSARIAI_SH_' . strtoupper( $key );
+
+		if ( defined( $constant_name ) ) {
+			return constant( $constant_name );
+		}
+
+		$option = get_option( self::OPTION_GROUP, array() );
+
+		if ( is_array( $option ) && array_key_exists( $key, $option ) ) {
+			return $option[ $key ];
+		}
+
+		foreach ( self::fields() as $field ) {
+			if ( $field['key'] === $key ) {
+				return $field['default'] ?? $fallback;
+			}
+		}
+
+		return $fallback;
+	}
+}

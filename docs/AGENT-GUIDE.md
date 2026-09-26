@@ -59,7 +59,7 @@ the plugin should be a paid/licensed product (this pulls in the
 ### Targeting wordpress.org (`"wporg": true`)
 
 Set `"wporg": true` in the spec to switch the build from commercial
-distribution (ansariaiwp.com) to a review-ready wordpress.org plugin. In
+distribution (ansariai.ir) to a review-ready wordpress.org plugin. In
 this mode the factory enforces the directory's hard rules at validate time
 and changes what gets generated:
 

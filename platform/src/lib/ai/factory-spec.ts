@@ -84,10 +84,10 @@ export interface FactoryDefaults {
 
 const DEFAULTS: Required<Pick<FactoryDefaults, "authorName" | "authorUri" | "requiresPhp" | "requiresWp" | "licenseServer">> = {
   authorName: "AnsariAi",
-  authorUri: "https://ansariaiwp.com",
+  authorUri: "https://ansariai.ir",
   requiresPhp: "8.1",
   requiresWp: "6.5",
-  licenseServer: "https://ansariaiwp.com/api/v1",
+  licenseServer: "https://ansariai.ir/api/v1",
 };
 
 /**

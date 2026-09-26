@@ -66,7 +66,7 @@ function wppf_validate_spec( string $specPath ): array {
             throw new RuntimeException('Spec sets wporg=true but includes the "license-client" module. wordpress.org plugins must not gate features or updates behind a license key (Guidelines: no commercial restrictions).');
         }
         if (! empty($spec['license']['enabled'])) {
-            throw new RuntimeException('Spec sets wporg=true together with license.enabled=true. Choose one distribution target: wp.org (free) or ansariaiwp.com (licensed).');
+            throw new RuntimeException('Spec sets wporg=true together with license.enabled=true. Choose one distribution target: wp.org (free) or ansariai.ir (licensed).');
         }
         $tags = array_map('trim', explode(',', strtolower((string) ($spec['readme']['tags'] ?? ''))));
         $tags = array_filter($tags, static fn (string $t): bool => '' !== $t);

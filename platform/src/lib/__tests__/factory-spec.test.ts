@@ -19,7 +19,7 @@ describe("toFactorySpec", () => {
   it("fills the operational fields the model must not guess", () => {
     const spec = toFactorySpec(drafted);
 
-    expect(spec.author).toEqual({ name: "AnsariAi", uri: "https://ansariaiwp.com" });
+    expect(spec.author).toEqual({ name: "AnsariAi", uri: "https://ansariai.ir" });
     expect(spec.requires.php).toBe("8.1");
     expect(spec.license.enabled).toBe(true);
     expect(spec.license.productId).toBe("invoice-nagger");

@@ -2,7 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased] - wordpress.org Target Mode
+## [Unreleased]
+
+### Changed - Rebranding
+- **Project renamed to AnsariAi WP** (README title), author across all specs, defaults and composer metadata is now **Mohammad Ansari**, homepage/license server domain unified to **https://ansariai.ir** (was `ansariaiwp.com`). Composer package name: `ansariai-ir/wp-plugin-factory`. No functional changes.
+
+## [1.1.0] - wordpress.org Target Mode
 
 ### Added
 - **`wporg: true` spec flag**: one-switch distribution target. The factory now builds either a commercial plugin (default, license-client allowed) or a review-ready wordpress.org plugin — never a mix.

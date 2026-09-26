@@ -1,5 +1,5 @@
 {
-    "name": "ansariaiwp/wp-plugin-factory",
+    "name": "ansariai-ir/wp-plugin-factory",
     "description": "WordPress Plugin Factory: a spec-driven scaffold + module system for generating production-grade WordPress plugins.",
     "type": "project",
     "version": "1.0.1",
@@ -51,5 +51,11 @@
         "compose-plugin": "Compose scaffold + selected modules from a spec into /build/<slug>/.",
         "build": "Validate, compose, lint and zip a plugin from a spec into /build/<slug>-<version>.zip.",
         "new-module": "Scaffold a brand new, empty module folder following MODULE-SPEC.md."
-    }
+    },
+    "authors": [
+        {
+            "name": "Mohammad Ansari",
+            "homepage": "https://ansariai.ir"
+        }
+    ]
 }

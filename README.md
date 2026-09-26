@@ -1,4 +1,6 @@
-# AiWp — WordPress Plugin Factory + SaaS License Platform
+# AnsariAi WP — WordPress Plugin Factory + SaaS License Platform
+
+**سازنده / Author:** Mohammad Ansari — [ansariai.ir](https://ansariai.ir)
 
 [![Build](https://github.com/ansariaiadmin/aiwp/actions/workflows/qa.yml/badge.svg?branch=main)](https://github.com/ansariaiadmin/aiwp/actions/workflows/qa.yml)
 [![Tests](https://img.shields.io/badge/tests-PHPCS%20%2B%20PHPCompatibility-brightgreen)](https://github.com/ansariaiadmin/aiwp/actions)

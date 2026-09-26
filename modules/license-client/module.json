@@ -2,7 +2,7 @@
   "id": "license-client",
   "name": "License Client",
   "version": "1.0.0",
-  "description": "Talks to the ansariaiwp license server: activate/validate/deactivate a license key, and delivers private plugin updates via the update_plugins filter (no wordpress.org, no GitHub links exposed to the site owner).",
+  "description": "Talks to the ansariai.ir license server: activate/validate/deactivate a license key, and delivers private plugin updates via the update_plugins filter (no wordpress.org, no GitHub links exposed to the site owner).",
   "requires": ["scheduler"],
   "conflicts": [],
   "hooks": {

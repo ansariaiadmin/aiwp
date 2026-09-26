@@ -1,0 +1,180 @@
+/**
+ * Store Health Assistant admin styles — guided-help system.
+ *
+ * Every settings field can carry a (?) help trigger whose popover contains
+ * an inline-SVG illustration, long-form guidance and a concrete example.
+ * All motion is soft (200ms ease-out), respects prefers-reduced-motion,
+ * and never blocks the form itself.
+ */
+
+/* ---------- help trigger button ---------- */
+
+.ansariai_sh-help-trigger {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	margin: 0 0 0 6px;
+	padding: 0;
+	border: 1px solid transparent;
+	border-radius: 50%;
+	background: #f0f0f1;
+	color: #646970;
+	cursor: pointer;
+	vertical-align: middle;
+	transition: background 0.2s ease-out, color 0.2s ease-out, transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+.ansariai_sh-help-trigger:hover {
+	background: #2271b1;
+	color: #fff;
+	transform: scale(1.12);
+	box-shadow: 0 2px 8px rgba(34, 113, 177, 0.35);
+}
+
+.ansariai_sh-help-trigger:focus-visible {
+	outline: 2px solid #2271b1;
+	outline-offset: 2px;
+}
+
+.ansariai_sh-help-trigger[aria-expanded="true"] {
+	background: #2271b1;
+	color: #fff;
+}
+
+.ansariai_sh-help-trigger .dashicons {
+	width: 16px;
+	height: 16px;
+	font-size: 16px;
+	line-height: 1;
+}
+
+/* ---------- popover shell ---------- */
+
+.ansariai_sh-help-pop {
+	position: absolute;
+	z-index: 99999;
+	width: min(360px, calc(100vw - 40px));
+	visibility: hidden;
+	opacity: 0;
+	transform: translateY(8px) scale(0.98);
+	transition: opacity 0.2s ease-out, transform 0.2s ease-out, visibility 0s linear 0.2s;
+}
+
+.ansariai_sh-help-pop.is-open {
+	visibility: visible;
+	opacity: 1;
+	transform: translateY(0) scale(1);
+	transition: opacity 0.2s ease-out, transform 0.2s ease-out, visibility 0s;
+}
+
+.ansariai_sh-help-pop-inner {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 10px;
+	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16), 0 2px 6px rgba(0, 0, 0, 0.08);
+	padding: 16px 18px 14px;
+	font-size: 13px;
+	line-height: 1.6;
+	color: #3c434a;
+}
+
+/* little arrow pointing at the trigger */
+.ansariai_sh-help-pop::before {
+	content: "";
+	position: absolute;
+	top: -7px;
+	left: 18px;
+	width: 12px;
+	height: 12px;
+	background: #fff;
+	border-left: 1px solid #dcdcde;
+	border-top: 1px solid #dcdcde;
+	transform: rotate(45deg);
+}
+
+/* ---------- illustration band ---------- */
+
+.ansariai_sh-help-art {
+	display: block;
+	width: 44px;
+	height: 44px;
+	margin-bottom: 10px;
+	padding: 10px;
+	box-sizing: content-box;
+	border-radius: 12px;
+	background: linear-gradient(135deg, #eaf2fa 0%, #f6f0ff 100%);
+	color: #2271b1;
+	animation: ansariai_sh-art-in 0.35s ease-out both;
+}
+
+@keyframes ansariai_sh-art-in {
+	from {
+		opacity: 0;
+		transform: translateY(6px) scale(0.9);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+/* ---------- text layers ---------- */
+
+.ansariai_sh-help-title {
+	margin: 0 0 6px;
+	font-size: 14px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.ansariai_sh-help-body p:first-child {
+	margin-top: 0;
+}
+
+.ansariai_sh-help-body ul,
+.ansariai_sh-help-body ol {
+	margin: 6px 0 6px 18px;
+}
+
+.ansariai_sh-help-body code {
+	background: #f0f0f1;
+	border-radius: 4px;
+	padding: 1px 5px;
+	font-size: 12px;
+}
+
+.ansariai_sh-help-desc {
+	margin: 8px 0 0;
+	color: #646970;
+}
+
+.ansariai_sh-help-example {
+	margin: 10px 0 0;
+	padding: 8px 10px;
+	border-left: 3px solid #2271b1;
+	border-radius: 0 6px 6px 0;
+	background: #f6f7f7;
+}
+
+.ansariai_sh-help-example code {
+	background: transparent;
+	padding: 0;
+	font-weight: 600;
+	color: #2271b1;
+	word-break: break-word;
+}
+
+/* ---------- reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+	.ansariai_sh-help-trigger,
+	.ansariai_sh-help-pop {
+		transition: none;
+	}
+
+	.ansariai_sh-help-art {
+		animation: none;
+	}
+}

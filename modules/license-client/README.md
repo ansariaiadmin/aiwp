@@ -1,6 +1,6 @@
 # license-client
 
-Talks to the **ansariaiwp** private license server: activate / validate /
+Talks to the **ansariai.ir** private license server: activate / validate /
 deactivate a license key from wp-admin, and deliver plugin updates through
 the standard `update_plugins` WordPress mechanism — pointed at the license
 server, never at wordpress.org or a public GitHub repository/release page.
@@ -32,7 +32,7 @@ server, never at wordpress.org or a public GitHub repository/release page.
 {
   "license": {
     "enabled": true,
-    "server": "https://ansariaiwp.com/api/v1",
+    "server": "https://ansariai.ir/api/v1",
     "productId": "store-health"
   }
 }

@@ -60,13 +60,127 @@ final class Settings {
 		foreach ( self::fields() as $field ) {
 			add_settings_field(
 				$field['key'],
-				esc_html( $field['label'] ),
+				esc_html( $field['label'] ) . $this->help_button( $field ),
 				array( $this, 'render_field' ),
 				self::PAGE_SLUG . '_' . $field['tab'],
 				"{{PREFIX}}_section_{$field['tab']}",
 				$field
 			);
 		}
+	}
+
+	/**
+	 * Renders the (?) help trigger plus its animated popover for a field.
+	 * The popover contains an optional inline-SVG illustration, the
+	 * long-form help text (a safe markup subset), and a concrete example.
+	 * Interaction (toggle/close) lives in assets/js/admin.js; styling and
+	 * transitions in assets/css/admin.css. Returns '' when the field has
+	 * no guidance to show, so plain fields are untouched.
+	 *
+	 * @param array<string,mixed> $field
+	 */
+	private function help_button( array $field ): string {
+		$help       = (string) ( $field['help'] ?? '' );
+		$example    = (string) ( $field['example'] ?? '' );
+		$desc       = (string) ( $field['description'] ?? '' );
+		$illustrate = (string) ( $field['illustration'] ?? '' );
+
+		if ( '' === $help && '' === $example && '' === $desc ) {
+			return '';
+		}
+
+		$id   = '{{PREFIX}}-help-' . sanitize_key( (string) $field['key'] );
+		$html = sprintf(
+			' <button type="button" class="{{PREFIX}}-help-trigger" aria-haspopup="dialog" aria-expanded="false" aria-controls="%s" data-help-target="%s" title="%s"><span class="dashicons dashicons-editor-help" aria-hidden="true"></span><span class="screen-reader-text">%s</span></button>',
+			esc_attr( $id ),
+			esc_attr( $id ),
+			esc_attr__( 'Show help', '{{TEXT_DOMAIN}}' ),
+			esc_html__( 'Show help', '{{TEXT_DOMAIN}}' )
+		);
+
+		$html .= sprintf( '<div class="{{PREFIX}}-help-pop" id="%s" role="dialog" hidden>', esc_attr( $id ) );
+		$html .= '<div class="{{PREFIX}}-help-pop-inner">';
+
+		if ( '' !== $illustrate ) {
+			$html .= $this->help_illustration( $illustrate );
+		}
+
+		$html .= sprintf( '<h3 class="{{PREFIX}}-help-title">%s</h3>', esc_html( (string) $field['label'] ) );
+
+		if ( '' !== $help ) {
+			$html .= '<div class="{{PREFIX}}-help-body">' . $this->sanitize_help_markup( $help ) . '</div>';
+		}
+
+		if ( '' !== $desc ) {
+			$html .= sprintf( '<p class="{{PREFIX}}-help-desc">%s</p>', esc_html( $desc ) );
+		}
+
+		if ( '' !== $example ) {
+			$html .= sprintf(
+				'<p class="{{PREFIX}}-help-example"><strong>%s</strong> <code>%s</code></p>',
+				esc_html__( 'For example:', '{{TEXT_DOMAIN}}' ),
+				esc_html( $example )
+			);
+		}
+
+		$html .= '</div></div>';
+
+		return $html;
+	}
+
+	/**
+	 * Whitelist-based sanitizer for the small inline markup subset allowed
+	 * inside spec "help" strings: <b> <i> <em> <strong> <code> <ul> <ol>
+	 * <li> <br> <a href>. Everything else is stripped; attributes except a
+	 * safe href on <a> are removed.
+	 */
+	private function sanitize_help_markup( string $help ): string {
+		$allowed = array(
+			'b'      => array(),
+			'i'      => array(),
+			'em'     => array(),
+			'strong' => array(),
+			'code'   => array(),
+			'ul'     => array(),
+			'ol'     => array(),
+			'li'     => array(),
+			'br'     => array(),
+			'a'      => array(
+				'href'   => true,
+				'target' => true,
+				'rel'    => true,
+			),
+		);
+
+		return wp_kses( $help, $allowed );
+	}
+
+	/**
+	 * Named inline-SVG illustrations (decorative, aria-hidden). Keys come
+	 * from the spec's "illustration" enum; unknown keys render nothing.
+	 */
+	private function help_illustration( string $name ): string {
+		$body = array(
+			'email'     => '<rect x="2" y="4" width="16" height="12" rx="2"/><path d="m2 6 8 6 8-6"/>',
+			'bell'      => '<path d="M9 2c-2.5 0-4 2-4 4.5C5 11 3 12 3 14h14c0-2-2-3-2-7.5C15 4 13.5 2 11 2z" transform="translate(-1)"/><path d="M9.5 18a2 2 0 0 0 3 0"/>',
+			'lock'      => '<rect x="4" y="9" width="12" height="9" rx="2"/><path d="M7 9V6a3.5 3.5 0 0 1 7 0v3"/>',
+			'chart'     => '<path d="M3 17l5-6 4 3 6-8"/><path d="M3 20h16"/>',
+			'clock'     => '<circle cx="10" cy="10" r="7"/><path d="M10 6v4l3 2"/>',
+			'database'  => '<ellipse cx="10" cy="5" rx="7" ry="2.5"/><path d="M3 5v10c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5V5"/><path d="M3 10c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5"/>',
+			'globe'     => '<circle cx="10" cy="10" r="7"/><path d="M3 10h14M10 3c2.5 2 2.5 12 0 14M10 3c-2.5 2-2.5 12 0 14"/>',
+			'shield'    => '<path d="M10 2 4 4.5V9c0 4.5 2.8 7.6 6 9 3.2-1.4 6-4.5 6-9V4.5z"/><path d="m7.5 10 2 2 3.5-4"/>',
+			'sparkles'  => '<path d="M10 2l1.5 4L16 7.5 11.5 9 10 13l-1.5-4L4 7.5 8.5 6zM16 13l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/>',
+			'list'      => '<path d="M4 5h12M4 10h12M4 15h8"/><circle cx="2.5" cy="5" r=".5"/><circle cx="2.5" cy="10" r=".5"/><circle cx="2.5" cy="15" r=".5"/>',
+		)[ $name ] ?? '';
+
+		if ( '' === $body ) {
+			return '';
+		}
+
+		return sprintf(
+			'<svg class="{{PREFIX}}-help-art" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">%s</svg>',
+			$body
+		);
 	}
 
 	/**

@@ -58,10 +58,12 @@ final class Assets {
 			wp_enqueue_script(
 				'{{SLUG}}-admin',
 				VPLUGIN_URL . 'assets/js/admin.js',
-				array( 'jquery' ),
+				array(),
 				(string) filemtime( $js ),
 				true
 			);
+			// The help trigger button uses WordPress's dashicons set.
+			wp_enqueue_style( 'dashicons' );
 		}
 	}
 
