@@ -10,149 +10,139 @@
 
 **Made by [Mohammad Ansari](https://ansariai.ir)** · Telegram [@ansariaiadmin](https://t.me/ansariaiadmin) · © 2026 AnsariAi — attribution must be preserved
 
-<table width="100%"><tr><td align="left" width="50%">🇮🇷 <b>فارسی</b> ← ستون چپ / Left column</td><td align="right" width="50%"><b>English</b> → ستون راست / Right column 🇬🇧</td></tr></table>
+### 🌐 Language / زبان
+
+**🇬🇧 English (primary)** · **[🇮🇷 راهنمای کامل فارسی را اینجا بخوانید →](docs/README-FA.md)**
 
 </div>
 
-<table width="100%"><tr>
+---
 
-<td width="50%" valign="top" dir="rtl" align="right">
+## TL;DR
 
-### 🇮🇷 معرفی (فارسی)
-
-**AnsariAiWP** یک «کارخانه افزونه» است: شما یک فایل JSON ساده (حدود ۳۰ خط) می‌نویسید و کارخانه یک افزونه وردپرس کامل، امن و قابل نصب تحویل می‌دهد — بدون حتی یک خط کدنویسی PHP.
-
-**با دانش معمولی چه می‌توانید بسازید؟**
-- ✅ افزونه سلامت‌سنج سایت (نمره ۰ تا ۱۰۰ + گزارش هفتگی ایمیلی)
-- ✅ افزونه پشتیبان‌گیری هوشمند (زمان‌بندی خودکار + هشدار)
-- ✅ فرم تماس، خبرنامه، قفل امنیتی لاگین، پاکسازی دیتابیس
-- ✅ داشبورد مدیریتی و ابزار گزارش‌گیری CSV
-
-**نصب در ۱ دقیقه (بدون دانش فنی):**
+Write a ~30-line JSON spec → get a production-grade, installable WordPress plugin. No PHP coding required. The factory enforces security standards (nonces, capability checks, sanitization, prepared statements) and WPCS linting on every generated file.
 
 ```bash
 git clone https://github.com/ansariaiadmin/aiwp.git
 cd aiwp && chmod +x install.sh && ./install.sh
 ```
 
-فقط همین! سپس آدرسی که نمایش داده می‌شود را در مرورگر باز کنید.
+Open the URL printed in your terminal — done. Non-technical users: see [INSTALL.md](INSTALL.md).
 
-**راهنمای کامل فارسی:** [docs/INSTALL-FA.md](docs/INSTALL-FA.md) · [USER_GUIDE_FA.md](docs/USER_GUIDE_FA.md)
+---
 
-**دستورات روزمره:**
+## What you can build (no coding)
 
-| دستور | کار |
-|---|---|
-| `./update.sh` | آپدیت خودکار با بکاپ + بازگشت امن |
-| `./status.sh` | وضعیت سرویس‌ها |
-| `./logs.sh` | مشاهده لاگ‌ها |
-| `./stop.sh` | توقف کامل |
+| Plugin | Modules used | Difficulty |
+|---|---|---|
+| Site Health Scanner (score 0–100 + weekly email report) | `health-scan`, `email-notify`, `scheduler` | ⭐ one command |
+| Smart Backup Guardian (adaptive schedule + integrity check) | `backup-alert`, `scheduler` | ⭐ one command |
+| Contact form / newsletter / login lock / DB cleaner | `settings-page`, `db-table`, `rest-api` | ⭐⭐ edit one JSON |
+| WooCommerce license & sales dashboard | `license-client`, `csv-export`, `blocks-compat` | ⭐⭐⭐ spec + Pro platform |
 
-**ماژول‌های آماده (ترکیبی انتخاب کنید):**
+Full Persian guide for non-technical users: **[docs/README-FA.md](docs/README-FA.md)**
 
-| ماژول | کاربرد |
-|---|---|
-| `settings-page` | صفحه تنظیمات گرافیکی |
-| `health-scan` | اسکنر سلامت سایت با نمره‌دهی Pro |
-| `backup-alert` | نگهبان پشتیبان‌گیری Pro |
-| `rest-api` | رابط برنامه‌نویسی امن |
-| `db-table` | جدول دیتابیس + مخزن داده |
-| `scheduler` | کارهای زمان‌بندی‌شده |
-| `csv-export` | خروجی اکسل/CSV |
-| `email-notify` | ارسال ایمیل امن |
-
-**حمایت مالی:** هر دونیت = شارژ API و ساخت پروژه‌های جدید، رایگان برای همه؛ من چیزی برای خودم نمی‌خواهم. جزئیات: [DONATE.md](DONATE.md) 💛
-
-**حق تألیف:** © ۲۰۲۶ محمد انصاری — در صورت فورک کردن، حفظ نام سازنده و لینک [ansariai.ir](https://ansariai.ir) الزامی است. اطلاعات بیشتر: [ABOUT.md](ABOUT.md)
-
-</td>
-
-<td width="50%" valign="top" dir="ltr" align="left">
-
-### 🇬🇧 Overview (English)
-
-**AnsariAiWP** is a spec-driven *plugin factory*: write one small JSON file (~30 lines) and it generates a complete, secure, production-grade WordPress plugin — no PHP coding required. It also ships a full SaaS license platform (admin + customer dashboards sharing one API).
-
-**What can a non-technical user build?**
-- ✅ Site health scanner (0–100 score + weekly email reports)
-- ✅ Smart backup guardian (adaptive scheduling + alerts)
-- ✅ Contact forms, newsletters, login hardening, DB cleanup
-- ✅ Admin dashboards & CSV reporting tools
-
-**Install in 1 minute (no technical skills needed):**
+## Quickstart (tested)
 
 ```bash
+# 1. Clone & install tooling
 git clone https://github.com/ansariaiadmin/aiwp.git
-cd aiwp && chmod +x install.sh && ./install.sh
+cd aiwp && composer install
+
+# 2. Validate & lint
+composer validate --strict && composer lint
+
+# 3. Write a spec from an example
+cp spec/examples/store-health.json spec/my-plugin.json   # then edit it
+
+# 4. Build: validate -> compose -> syntax check -> lint -> zip
+php tools/build.php spec/my-plugin.json
+# -> build/my-plugin-1.0.0.zip ready for wp-admin upload
 ```
 
-That's it — open the printed URL in your browser.
+## Architecture
 
-**Full English guide:** [INSTALL.md](INSTALL.md) · [USER_GUIDE_EN.md](docs/USER_GUIDE_EN.md)
+```mermaid
+flowchart TB
+    Spec[plugin-spec.json] --> Validate[tools/validate.php]
+    Validate --> Compose[tools/compose.php]
+    Compose --> Scaffold[scaffold/ + modules/]
+    Scaffold --> Lint[phpcs + php -l]
+    Lint --> Zip[build/slug-version.zip]
+    Zip -->|upload| WP[WordPress]
+```
 
-**Everyday commands:**
-
-| Command | What it does |
-|---|---|
-| `./update.sh` | Auto-update with backup + safe rollback |
-| `./status.sh` | Service health check |
-| `./logs.sh` | View logs |
-| `./stop.sh` | Stop everything |
-
-**Ready-made modules (mix & match):**
-
-| Module | Purpose |
-|---|---|
-| `settings-page` | Graphical settings screen |
-| `health-scan` | Pro site-health scanner with scoring |
-| `backup-alert` | Pro smart backup guardian |
-| `rest-api` | Secure REST endpoints |
-| `db-table` | DB table + typed repository |
-| `scheduler` | Background jobs (Action Scheduler) |
-| `csv-export` | Excel/CSV export |
-| `email-notify` | Safe wp_mail wrapper |
-
-**Example spec — this becomes a real plugin:**
+**Spec sample — add modules without touching PHP:**
 
 ```json
 {
   "slug": "my-crm",
   "version": "1.0.0",
-  "modules": ["settings-page", "db-table", "rest-api"],
-  "db_tables": {
-    "contacts": {"columns": {"id": "BIGINT AUTO_INCREMENT", "phone": "VARCHAR(20)"}}
-  }
+  "modules": ["settings-page", "db-table", "rest-api", "sms-gateway"],
+  "settings": { "kavenegar_api_key": {"type": "string", "required": true} },
+  "db_tables": { "contacts": {"columns": {"id": "BIGINT AUTO_INCREMENT", "phone": "VARCHAR(20)"}} }
 }
 ```
 
-```bash
-php tools/build.php spec/my-crm.json
-# => build/my-crm-1.0.0.zip ready for wp-admin upload
+## Available Modules
+
+| Module | Purpose |
+|--------|---------|
+| `settings-page` | Settings link + guarded reset |
+| `scheduler` | Unified background jobs (Action Scheduler → wp-cron fallback) |
+| `db-table` | dbDelta table + typed repository |
+| `rest-api` | `{slug}/v1` REST with permission_callback + rate limiting |
+| `sms-gateway` | Kavenegar + MeliPayamak drivers |
+| `email-notify` | Safe wp_mail wrapper |
+| `csv-export` | CSV + guarded download |
+| `cron-report` | Recurring report + email/CSV |
+| `health-scan` | Pro: scoring engine, 30-day trend, auto-fix |
+| `backup-alert` | Pro: adaptive schedule, integrity verify, retention |
+| `license-client` | Private license server + signed updates |
+| `blocks-compat` | WooCommerce Blocks integration |
+
+Each module ships with `module.json` manifest + `src/` + bilingual `README.md`.
+
+## Security & Standards
+
+Every generated plugin enforces: `ABSPATH` guard, nonce + `current_user_can()` on writes, `sanitize_*`/`esc_*`, `$wpdb->prepare()`, WPCS 3.x + PHPCompatibilityWP zero errors, HPOS-safe WooCommerce CRUD, REST rate limiting, uninstall cleanup (`uninstall.php`).
+
+Hardened against known bug-bounty classes: update-channel allowlist + HMAC signature, SSRF guards, secrets masked in API responses, JWT refresh-token rotation with revocation list. See [docs/AUDIT-2026-09-07.md](docs/AUDIT-2026-09-07.md) for the honest audit trail.
+
+## Repository Layout
+
+```
+composer.json / phpcs.xml.dist   Tooling
+.github/workflows/qa.yml         CI matrix (PHP 8.1/8.2/8.3)
+docs/                            ARCHITECTURE.md, MODULE-SPEC.md, README-FA.md, guides/
+spec/                            schema + examples
+scaffold/                        Boilerplate with {{PLACEHOLDER}} templates
+modules/                         Opt-in feature units
+tools/                           validate.php, compose.php, build.php, tests/
+platform/                        SaaS license server (admin + customer dashboards)
+sandbox/                         Disposable WP+MariaDB QA
 ```
 
-**Quality guarantees:** every generated file enforces `ABSPATH` guards, nonce + capability checks, `sanitize_*`/`esc_*`, `$wpdb->prepare()`, WPCS 3.x zero errors. **25/25 factory tests passing** (+ integration suite). CI runs on PHP 8.1/8.2/8.3.
+## Documentation Map
 
-**Support this project:** every donation = API credits + new free projects for everyone. Details: [DONATE.md](DONATE.md) 💛
+| Document | Audience | Language |
+|---|---|---|
+| [docs/README-FA.md](docs/README-FA.md) | غیرفنی، شروع سریع | فارسی |
+| [docs/USER_GUIDE_FA.md](docs/USER_GUIDE_FA.md) | آموزش تصویری گام‌به‌گام | فارسی |
+| [docs/USER_GUIDE_EN.md](docs/USER_GUIDE_EN.md) | Step-by-step illustrated guide | English |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Developers / engineers | English |
+| [docs/MODULE-SPEC.md](docs/MODULE-SPEC.md) | Module authors | English |
+| [ABOUT.md](ABOUT.md) · [DONATE.md](DONATE.md) | Attribution & support | Bilingual |
 
-**Attribution:** © 2026 Mohammad Ansari — forks must keep the author name and the [ansariai.ir](https://ansariai.ir) link. More: [ABOUT.md](ABOUT.md)
+## Author
 
-</td>
+**Mohammad Ansari** — [ansariai.ir](https://ansariai.ir) · Telegram [@ansariaiadmin](https://t.me/ansariaiadmin) · GitHub [@ansariaiadmin](https://github.com/ansariaiadmin)
 
-</tr></table>
+## 💛 Support / حمایت
 
----
+هر دونیت = شارژ API و ساخت پروژه‌های جدید، رایگان برای همه. Details & wallets: **[DONATE.md](DONATE.md)** ☕
 
-<div align="center">
+## License
 
-## 📚 Documentation / مستندات
-
-<table width="100%"><tr>
-<td width="50%" valign="top" dir="rtl" align="right"><b>فارسی</b><br>
-<a href="docs/INSTALL-FA.md">راهنمای نصب</a> · <a href="docs/USER_GUIDE_FA.md">راهنمای کاربری</a> · <a href="CHANGELOG.md">تغییرات نسخه‌ها</a></td>
-<td width="50%" valign="top" dir="ltr" align="left"><b>English</b><br>
-<a href="INSTALL.md">Install Guide</a> · <a href="docs/USER_GUIDE_EN.md">User Guide</a> · <a href="CHANGELOG.md">Changelog</a></td>
-</tr></table>
-
-**Architecture:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · **Module spec:** [docs/MODULE-SPEC.md](docs/MODULE-SPEC.md) · **License:** [MIT](LICENSE) © 2026 Mohammad Ansari
-
-</div>
+- **AnsariAiWP factory & platform:** MIT © 2026 Mohammad Ansari — see [LICENSE](LICENSE). Attribution preserved in all forks.
+- **Plugins generated by the factory:** GPL-2.0-or-later (required for WordPress.org; enforced in every generated file header and in `wp.org` validation mode).
