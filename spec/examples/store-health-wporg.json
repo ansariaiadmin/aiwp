@@ -45,8 +45,32 @@
     "cron-report"
   ],
   "options": [
-    { "key": "report_email", "type": "email", "label": "Report recipient(s)", "default": "" },
-    { "key": "low_stock_threshold", "type": "number", "label": "Low-stock threshold", "default": 5 },
-    { "key": "digest_enabled", "type": "checkbox", "label": "Enable daily digest", "default": true }
+    {
+      "key": "report_email",
+      "type": "email",
+      "label": "Report recipient(s)",
+      "default": "",
+      "help": "Enter one or more <b>email addresses</b> that should receive store health reports.<br><ul><li>Separate multiple addresses with a comma.</li><li>Prefer a shared mailbox (e.g. <code>ops@yourdomain.ir</code>) so reports survive staff changes.</li></ul>",
+      "example": "owner@example.com, ops@example.com",
+      "illustration": "email"
+    },
+    {
+      "key": "low_stock_threshold",
+      "type": "number",
+      "label": "Low-stock threshold",
+      "default": 5,
+      "help": "A product is flagged as <i>low stock</i> when its remaining quantity is <b>less than or equal to</b> this number.<br><ul><li>Use <code>0</code> to flag only out-of-stock items.</li><li>Busy stores typically set 5–10; slow luxury stores 1–2.</li></ul>",
+      "example": "5",
+      "illustration": "chart"
+    },
+    {
+      "key": "digest_enabled",
+      "type": "checkbox",
+      "label": "Enable daily digest",
+      "default": true,
+      "help": "When enabled, a compact digest arrives <b>every morning</b> summarising overnight orders, low-stock products and failed payments.<br><br>Turn this <i>off</i> if you already watch the dashboard daily — too many emails is the #1 reason reports get ignored.",
+      "example": "On for busy stores, Off for small shops",
+      "illustration": "bell"
+    }
   ]
 }

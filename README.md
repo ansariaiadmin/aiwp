@@ -160,6 +160,23 @@ npm run dev
 
 ---
 
+## 🧭 Built-in Visual Help System / راهنمای تصویری داخلی
+
+Every generated plugin ships with a **polished in-admin help experience** — no screenshots to maintain, it lives inside the plugin itself:
+
+- ❓ A **(?) icon next to every setting field** opens an animated popover.
+- 🖼️ Each popover shows a **named inline-SVG illustration** (email, chart, bell, lock, shield, database, globe, clock, sparkles, list) + long-form guidance + a concrete example value.
+- ✨ Smooth CSS animations (fade + scale), closes on `Esc` / outside click, one popover at a time, RTL & mobile friendly, fully keyboard-accessible (`aria-haspopup`, `role="dialog"`).
+- 📝 Defined per-field right in your spec JSON: `"help"`, `"example"`, `"illustration"` — see [`spec/examples/store-health.json`](spec/examples/store-health.json).
+- 📚 Full Persian walkthrough with usage examples: [`docs/USER_GUIDE_FA.md` → راهنمای تصویری](docs/USER_GUIDE_FA.md).
+
+```json
+{ "key": "report_email", "type": "email",
+  "help": "Enter one or more <b>email addresses</b>…",
+  "example": "owner@example.com, ops@example.com",
+  "illustration": "email" }
+```
+
 ## Features Table
 
 | Feature | Factory Enforces | Platform Provides |
