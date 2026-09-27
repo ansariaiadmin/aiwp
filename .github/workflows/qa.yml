@@ -29,7 +29,7 @@ jobs:
         run: composer install --no-interaction --prefer-dist
       - name: Lint
         run: composer lint
-      - name: Run tests (25 tests)
+      - name: Run tests (27 tests)
         run: php tools/tests/run-tests.php
 
   factory-php-docker:
