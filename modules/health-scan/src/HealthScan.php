@@ -42,9 +42,75 @@ final class HealthScan implements ModuleInterface {
 
 	public function boot(): void {
 		if ( ! wp_next_scheduled( self::CRON_EVENT ) ) {
-			wp_schedule_event( time() + MINUTE_IN_SECONDS, 'daily', self::CRON_EVENT );
+			wp_schedule_event( time() + MINUTE_IN_SECONDS, $this->interval_recurrence(), self::CRON_EVENT );
 		}
 		add_action( self::CRON_EVENT, array( $this, 'scan_and_cache' ) );
+
+		// The recurring event must not outlive the plugin: clear it on
+		// deactivation the same way cron-report and license-client do.
+		add_action(
+			'{{PREFIX}}_deactivate',
+			static function (): void {
+				$timestamp = wp_next_scheduled( HealthScan::CRON_EVENT );
+
+				if ( false !== $timestamp ) {
+					wp_unschedule_event( $timestamp, HealthScan::CRON_EVENT );
+				}
+
+				wp_clear_scheduled_hook( HealthScan::CRON_EVENT );
+			}
+		);
+
+		// Remove the cached scan when the plugin is deleted entirely.
+		add_action(
+			'{{PREFIX}}_uninstall',
+			static function (): void {
+				delete_option( HealthScan::CACHE_KEY );
+			}
+		);
+	}
+
+	/**
+	 * Maps the (documented) scan_interval_hours option to the closest
+	 * available wp-cron recurrence. Sub-hour intervals fall back to the
+	 * 5-minute schedule the scheduler module registers.
+	 */
+	private function interval_recurrence(): string {
+		$hours = (int) \VendorPlugin\Settings::get( 'scan_interval_hours', 24 );
+
+		if ( $hours <= 0 ) {
+			$hours = 24;
+		}
+
+		// The 5-minute recurrence only exists when the scheduler module
+		// (which registers it) is part of this build; fall back otherwise.
+		if ( $hours <= 5 / 60 ) {
+			$schedules = wp_get_schedules();
+
+			if ( isset( $schedules[ '{{PREFIX}}_five_minutes' ] ) ) {
+				return '{{PREFIX}}_five_minutes';
+			}
+
+			return 'twice_daily';
+		}
+
+		if ( $hours < 1 ) {
+			return 'twice_daily';
+		}
+
+		if ( $hours <= 12 ) {
+			return 'twice_daily';
+		}
+
+		if ( $hours <= 24 ) {
+			return 'daily';
+		}
+
+		if ( $hours <= 24 * 7 ) {
+			return 'weekly';
+		}
+
+		return 'monthly';
 	}
 
 	/**

@@ -28,12 +28,20 @@ const SANDBOX_API = "https://sandbox.zarinpal.com/pg/v4";
 const PROD_PAY = "https://www.zarinpal.com/pg/StartPay";
 const SANDBOX_PAY = "https://sandbox.zarinpal.com/pg/StartPay";
 
-/** Converts a stored amount into the Toman integer ZarinPal expects. */
+/**
+ * Converts a stored amount into the Toman integer ZarinPal expects.
+ *
+ * Currency codes accepted: IRR / IRT are both Rial (IRT is the former ISO
+ * 4217 code for the Rial — NOT the Toman), so both divide by 10; TMN /
+ * TOMAN are already Toman. Anything else is a configuration error (e.g. a
+ * USD plan charged through an Iranian gateway) and is refused loudly
+ * rather than guessed.
+ */
 export function tomanAmount(amount: number, currency: string): number {
   const upper = currency.toUpperCase();
 
-  if (upper === "TMN" || upper === "TOMAN" || upper === "IRT") return Math.round(amount);
-  if (upper === "IRR") return Math.round(amount / 10);
+  if (upper === "TMN" || upper === "TOMAN") return Math.round(amount);
+  if (upper === "IRR" || upper === "IRT") return Math.round(amount / 10);
 
   throw new Error(
     `ZarinPal only supports Iranian currencies; cannot convert "${currency}" to Toman.`,

@@ -1,5 +1,16 @@
 import { z } from "zod";
 
+/**
+ * Currencies the platform actually knows how to price, format and charge:
+ * IRR/TMN for the Iranian gateways (see lib/money.ts, lib/payment/*), USD
+ * and EUR for Stripe. Restricting plans to this set stops the whole
+ * misconfiguration class — e.g. a ZarinPal plan priced in a code the
+ * gateway cannot convert.
+ */
+export const CURRENCIES = ["IRR", "TMN", "USD", "EUR"] as const;
+
+export const currencySchema = z.enum(CURRENCIES);
+
 export const checkoutSchema = z.object({
   planId: z.string().min(1, "پلن را انتخاب کنید."),
 });
@@ -14,7 +25,7 @@ export const createPlanSchema = z.object({
   description: z.string().optional(),
   /** Smallest currency unit: 1500000 = 1,500,000 IRR; 4900 = $49.00. */
   price: z.coerce.number().int().min(0),
-  currency: z.string().min(3).max(3).default("IRR"),
+  currency: currencySchema.default("IRR"),
   maxActivations: z.coerce.number().int().min(1).max(100000).default(1),
   durationDays: z.coerce.number().int().min(1).max(36500).nullable().optional(),
   supportDays: z.coerce.number().int().min(0).max(36500).default(180),

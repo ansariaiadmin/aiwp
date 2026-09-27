@@ -137,6 +137,9 @@ describe("tomanAmount", () => {
   it("converts Rial to Toman and passes Toman through unchanged", () => {
     expect(tomanAmount(1_500_000, "IRR")).toBe(150_000);
     expect(tomanAmount(150_000, "TMN")).toBe(150_000);
+    // IRT is the former ISO 4217 code for the Rial, NOT the Toman — it must
+    // convert exactly like IRR or a plan priced in IRT charges 10x.
+    expect(tomanAmount(1_500_000, "IRT")).toBe(150_000);
   });
 
   it("refuses to guess a conversion for a foreign currency", () => {

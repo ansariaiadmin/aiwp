@@ -118,6 +118,36 @@ function wppf_compose( string $specPath, ?string $outDir = null ): string {
     $slug     = (string) $spec['slug'];
     $outDir ??= Support::repoPath('build/' . $slug);
 
+    // Defence in depth: wppf_compose() deletes $outDir before writing it.
+    // A mistyped or hostile --out= must never point that recursive delete
+    // at the repository root or at the factory's own source directories.
+    $realOut = realpath($outDir);
+
+    if (false === $realOut) {
+        // The directory may not exist yet — resolve its parent instead.
+        $realParent = realpath(dirname(rtrim($outDir, '/')));
+
+        if (false === $realParent) {
+            throw new RuntimeException('Invalid --out= path (no such parent directory): ' . $outDir);
+        }
+
+        $realOut = $realParent . '/' . basename($outDir);
+    }
+
+    $repoRoot = (string) realpath(Support::REPO_ROOT);
+
+    foreach ([ 'scaffold', 'modules', 'tools', 'spec' ] as $sourceDir) {
+        $protected = (string) realpath(Support::repoPath($sourceDir));
+
+        if ('' !== $protected && ($realOut === $protected || str_starts_with($realOut . '/', $protected . '/'))) {
+            throw new RuntimeException('Refusing to compose into a factory source directory: ' . $outDir);
+        }
+    }
+
+    if ($realOut === $repoRoot) {
+        throw new RuntimeException('Refusing to compose into the repository root: ' . $outDir);
+    }
+
     Support::rrmdir($outDir);
     mkdir($outDir, 0755, true);
 

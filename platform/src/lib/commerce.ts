@@ -15,6 +15,7 @@
  *     reports "already settled" instead of handing out a second key.
  */
 import { and, desc, eq, inArray } from "drizzle-orm";
+import { randomInt } from "node:crypto";
 import { db } from "@/lib/db";
 import { licenses, orders, productPlans, products, users } from "@/lib/db/schema";
 import { generateLicenseKey } from "@/lib/license-key";
@@ -33,8 +34,10 @@ export function newOrderReference(now: Date = new Date()): string {
   const date = `${String(now.getFullYear()).slice(2)}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
   let tail = "";
 
+  // crypto.randomInt (not Math.random): the reference is the only handle a
+  // buyer has to their order, and it is guessable-by-enumeration otherwise.
   for (let i = 0; i < 5; i += 1) {
-    tail += REFERENCE_ALPHABET[Math.floor(Math.random() * REFERENCE_ALPHABET.length)];
+    tail += REFERENCE_ALPHABET[randomInt(REFERENCE_ALPHABET.length)];
   }
 
   return `AW-${date}-${tail}`;

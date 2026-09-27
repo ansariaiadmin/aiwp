@@ -3,8 +3,12 @@
  * A deliberately small, dependency-free JSON Schema (draft 2020-12 subset)
  * validator, covering exactly the constructs used by
  * spec/plugin-spec.schema.json: type, required, properties,
- * additionalProperties, pattern, enum, items, minItems, maxItems,
+ * additionalProperties, pattern, const, enum, items, minItems, maxItems,
  * uniqueItems, minLength, maxLength, format (uri only), if/then.
+ *
+ * NOTE: "if" is only true when it produces ZERO errors — so the "if"
+ * keyword must use constructs this class understands (type, const, enum,
+ * ...). An "if" that silently no-ops makes "then" always apply.
  *
  * This keeps `php tools/validate.php` runnable with zero Composer
  * dependencies beyond what a plain PHP 8.1 CLI already provides, which
@@ -41,6 +45,10 @@ final class SchemaValidator {
     private function check( mixed $data, array $schema, string $path ): void {
         if (isset($schema['type'])) {
             $this->checkType($data, (string) $schema['type'], $path);
+        }
+
+        if (array_key_exists('const', $schema) && $data !== $schema['const']) {
+            $this->errors[] = sprintf('%s: value must be exactly %s.', $path, var_export($schema['const'], true));
         }
 
         if (isset($schema['enum']) && is_array($schema['enum']) && ! in_array($data, $schema['enum'], true)) {

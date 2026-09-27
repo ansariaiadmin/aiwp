@@ -1,0 +1,34 @@
+name: ✨ Feature request
+description: A new module, a platform capability, or an improvement
+labels: ["enhancement", "triage"]
+body:
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Factory — new/reused module
+        - Factory — build pipeline (validate/compose/build)
+        - Platform — license/admin/customer
+        - Platform — payments
+        - Platform — AI (spec drafting, review, KB)
+        - Docs
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: The problem
+      description: What are you trying to do, and why does the current design get in the way?
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Proposed solution
+      description: How should it work? For new modules, a 3-line behavioural description is enough — see docs/MODULE-SPEC.md for the contract.
+  - type: textarea
+    attributes:
+      label: Alternatives considered
+  - type: textarea
+    attributes:
+      label: Additional context

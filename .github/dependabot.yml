@@ -1,0 +1,38 @@
+version: 2
+updates:
+  # Platform (npm) — the main runtime
+  - package-ecosystem: npm
+    directory: /platform
+    schedule:
+      interval: weekly
+    groups:
+      next-react:
+        patterns:
+          - "next"
+          - "react"
+          - "react-dom"
+          - "eslint-config-next"
+      radix:
+        patterns:
+          - "@radix-ui/*"
+    open-pull-requests-limit: 10
+
+  # Factory (composer) — lint toolchain only
+  - package-ecosystem: composer
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+
+  # GitHub Actions
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+
+  # php-wasm runner (dev tooling)
+  - package-ecosystem: npm
+    directory: /tools/php-wasm
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5

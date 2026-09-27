@@ -26,6 +26,7 @@ import {
   parseRobots,
   isDisallowed,
   crawlSources,
+  isSafeCrawlUrl,
 } from "@/lib/rag/crawler";
 
 describe("htmlToText", () => {
@@ -173,5 +174,40 @@ describe("crawlSources", () => {
     });
 
     expect(result.fetched).toBe(3);
+  });
+});
+
+describe("isSafeCrawlUrl (SSRF guard)", () => {
+  it("allows public http(s) URLs", () => {
+    expect(isSafeCrawlUrl("https://developer.wordpress.org/plugins/security/")).toBeNull();
+    expect(isSafeCrawlUrl("http://example.com/docs")).toBeNull();
+  });
+
+  it("refuses non-http(s) schemes", () => {
+    expect(isSafeCrawlUrl("file:///etc/passwd")).not.toBeNull();
+    expect(isSafeCrawlUrl("gopher://127.0.0.1:1090/")).not.toBeNull();
+  });
+
+  it("refuses the cloud metadata endpoint and link-local ranges", () => {
+    expect(isSafeCrawlUrl("http://169.254.169.254/latest/meta-data/")).not.toBeNull();
+    expect(isSafeCrawlUrl("http://169.254.0.1/")).not.toBeNull();
+  });
+
+  it("refuses loopback and RFC1918 private ranges", () => {
+    expect(isSafeCrawlUrl("http://127.0.0.1:3000/")).not.toBeNull();
+    expect(isSafeCrawlUrl("http://10.0.0.5/")).not.toBeNull();
+    expect(isSafeCrawlUrl("http://192.168.1.10/")).not.toBeNull();
+    expect(isSafeCrawlUrl("http://172.16.0.1/")).not.toBeNull();
+    expect(isSafeCrawlUrl("http://[::1]/")).not.toBeNull();
+  });
+
+  it("refuses localhost and internal-name hosts", () => {
+    expect(isSafeCrawlUrl("http://localhost:5432/")).not.toBeNull();
+    expect(isSafeCrawlUrl("http://db.internal/")).not.toBeNull();
+    expect(isSafeCrawlUrl("http://redis.local/")).not.toBeNull();
+  });
+
+  it("refuses unparseable URLs", () => {
+    expect(isSafeCrawlUrl("not a url")).not.toBeNull();
   });
 });

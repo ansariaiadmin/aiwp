@@ -2,7 +2,7 @@
   "id": "backup-alert",
   "name": "Backup Freshness Alert",
   "version": "1.0.0",
-  "description": "Watches the age of your latest backup (a timestamp option you or your backup tool updates, or a file in uploads) and emails/SMS-es the admin when it goes stale. Integrates with email-notify and sms-gateway when present; degrades to a plain admin notice otherwise.",
+  "description": "Watches the age of your latest backup (a timestamp option you or your backup tool updates — see the backup_time_option setting and the backup_last_timestamp filter) and emails the admin when it goes stale. Integrates with email-notify when present; degrades to a plain admin notice otherwise.",
   "requires": [],
   "conflicts": [],
   "hooks": {

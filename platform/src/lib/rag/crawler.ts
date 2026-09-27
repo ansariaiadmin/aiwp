@@ -76,6 +76,62 @@ const USER_AGENT =
 const realSleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 /**
+ * SSRF guard for operator-supplied crawl URLs. The platform runs on cloud
+ * and VPS hosts where the metadata endpoint (169.254.169.254) and RFC1918
+ * ranges reach internal services, so a crawlable-URL field is a classic
+ * SSRF primitive even when only admins can submit it. Allowed: public
+ * http(s) hosts. Refused: non-http(s) schemes, localhost, .local/.internal
+ * names, and literal private/loopback/link-local/CGNAT addresses.
+ *
+ * Returns null when the URL is safe, otherwise a human-readable reason.
+ * (Rebinding via a public CNAME that resolves to an internal IP is out of
+ * scope here — the realistic threat is a directly typed internal target.)
+ */
+export function isSafeCrawlUrl(rawUrl: string): string | null {
+  let parsed: URL;
+  try {
+    parsed = new URL(rawUrl);
+  } catch {
+    return "آدرس نامعتبر است.";
+  }
+
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    return "فقط آدرس‌های http/https مجاز است.";
+  }
+
+  const host = parsed.hostname.replace(/^\[|\]$/g, "").toLowerCase();
+
+  if (
+    host === "localhost" ||
+    host === "::" ||
+    host === "0.0.0.0" ||
+    host.endsWith(".local") ||
+    host.endsWith(".internal") ||
+    host.endsWith(".lan")
+  ) {
+    return "خزیدن به آدرس‌های شبکه داخلی مجاز نیست.";
+  }
+
+  const privatePatterns: RegExp[] = [
+    /^127\./, // loopback
+    /^10\./, // RFC1918
+    /^192\.168\./, // RFC1918
+    /^169\.254\./, // link-local + cloud metadata
+    /^172\.(1[6-9]|2\d|3[01])\./, // RFC1918
+    /^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./, // CGNAT 100.64.0.0/10
+    /^::1$/, // IPv6 loopback
+    /^fc[0-9a-f]{2}:/, // IPv6 unique local
+    /^fe80:/, // IPv6 link-local
+  ];
+
+  if (privatePatterns.some((re) => re.test(host))) {
+    return "خزیدن به آدرس‌های شبکه داخلی مجاز نیست.";
+  }
+
+  return null;
+}
+
+/**
  * Parses a robots.txt body into the Disallow paths that apply to us.
  *
  * Deliberately simple: we match the `*` group and our own agent name, and
@@ -266,6 +322,15 @@ export async function crawlSources(
       parsed = new URL(source.url);
     } catch {
       onProgress({ type: "error", url: source.url, message: "آدرس نامعتبر است." });
+      result.failed += 1;
+      continue;
+    }
+
+    // SSRF guard: never crawl internal/private targets, even when the
+    // operator types one in by hand.
+    const unsafe = isSafeCrawlUrl(source.url);
+    if (unsafe !== null) {
+      onProgress({ type: "error", url: source.url, message: unsafe });
       result.failed += 1;
       continue;
     }

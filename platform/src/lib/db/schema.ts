@@ -267,8 +267,13 @@ export const licenseActivations = pgTable(
     activatedAt: timestamp("activated_at").notNull().defaultNow(),
     deactivatedAt: timestamp("deactivated_at"),
   },
-  (table) => [
-    uniqueIndex("license_activations_unique_idx").on(table.licenseId, table.siteUrl),
+    (table) => [
+    // Only ACTIVE activations are unique per (license, site): a site can be
+    // activated, deactivated and re-activated (deactivated rows stay as
+    // history). Migration 0006 replaces the original full index.
+    uniqueIndex("license_activations_active_unique_idx")
+      .on(table.licenseId, table.siteUrl)
+      .where(sql`deactivated_at IS NULL`),
   ],
 );
 

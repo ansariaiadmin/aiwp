@@ -58,6 +58,24 @@ final class CsvExport implements ModuleInterface {
 	}
 
 	/**
+	 * Defuses CSV formula injection: a cell whose value begins with =, +,
+	 * -, @, tab or carriage return would be executed as a formula by
+	 * Excel/Sheets/LibreOffice when the export is opened. Prefixing such a
+	 * value with a single quote keeps the text intact but inert. Applied to
+	 * every cell so user-controlled export rows (order data, contact names,
+	 * ... never trusted input) cannot carry formulas out of the site.
+	 */
+	public static function sanitize_cell( mixed $value ): string {
+		$text = is_scalar( $value ) ? (string) $value : wp_json_encode( $value );
+
+		if ( '' !== $text && preg_match( '/^[\t\r=+@-]/', $text ) ) {
+			$text = "'" . $text;
+		}
+
+		return $text;
+	}
+
+	/**
 	 * Builds a CSV string in memory. Suitable for small/medium datasets or
 	 * as an email attachment payload.
 	 *
@@ -80,7 +98,7 @@ final class CsvExport implements ModuleInterface {
 		fputcsv( $handle, array_keys( $rows[0] ) );
 
 		foreach ( $rows as $row ) {
-			fputcsv( $handle, array_map( static fn ( $value ): string => is_scalar( $value ) ? (string) $value : wp_json_encode( $value ), $row ) );
+			fputcsv( $handle, array_map( [ self::class, 'sanitize_cell' ], $row ) );
 		}
 
 		rewind( $handle );
@@ -115,7 +133,7 @@ final class CsvExport implements ModuleInterface {
 		fputcsv( $handle, array_keys( $rows[0] ) );
 
 		foreach ( $rows as $row ) {
-			fputcsv( $handle, array_map( static fn ( $value ): string => is_scalar( $value ) ? (string) $value : wp_json_encode( $value ), $row ) );
+			fputcsv( $handle, array_map( [ self::class, 'sanitize_cell' ], $row ) );
 		}
 
 		fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose

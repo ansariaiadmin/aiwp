@@ -147,6 +147,47 @@ it('rejects a slug that is not kebab-case', function () use ($specPath) {
     }
 });
 
+it('accepts license.enabled=false without a license server (free plugin)', function () use ($specPath) {
+    // Regression: the schema's if/then relies on "const", which the
+    // SchemaValidator did not implement — so "then" (server required)
+    // applied even when the license was disabled, and every free plugin
+    // spec failed validation.
+    $spec = json_decode((string) file_get_contents($specPath), true, 512, JSON_THROW_ON_ERROR);
+    $spec['license'] = ['enabled' => false];
+    $spec['modules'] = ['settings-page'];
+
+    $tmp = tempnam(sys_get_temp_dir(), 'aiwp-spec-') . '.json';
+    file_put_contents($tmp, json_encode($spec, JSON_THROW_ON_ERROR));
+
+    try {
+        $result = wppf_validate_spec($tmp);
+        assert_true(is_array($result), 'validate returned a non-array');
+        assert_true(!in_array('license-client', $result['modules'], true), 'license-client must not be required when the license is disabled');
+    } finally {
+        @unlink($tmp);
+    }
+});
+
+it('still requires license.server when license.enabled=true', function () use ($specPath) {
+    $spec = json_decode((string) file_get_contents($specPath), true, 512, JSON_THROW_ON_ERROR);
+    $spec['license'] = ['enabled' => true];
+    $spec['modules'] = ['license-client'];
+
+    $tmp = tempnam(sys_get_temp_dir(), 'aiwp-spec-') . '.json';
+    file_put_contents($tmp, json_encode($spec, JSON_THROW_ON_ERROR));
+
+    try {
+        wppf_validate_spec($tmp);
+        throw new RuntimeException('expected validation to fail when enabled=true has no server');
+    } catch (Throwable $e) {
+        if (str_contains($e->getMessage(), 'expected validation to fail')) {
+            throw $e;
+        }
+    } finally {
+        @unlink($tmp);
+    }
+});
+
 // -------------------------------------------------------------------------
 echo "\nComposition\n";
 // -------------------------------------------------------------------------

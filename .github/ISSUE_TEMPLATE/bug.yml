@@ -1,0 +1,56 @@
+name: 🐛 Bug report
+description: Something is broken — factory build fails, platform error, or a generated-plugin defect
+labels: ["bug", "triage"]
+body:
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which half of the repo is affected?
+      options:
+        - Factory (tools/ scaffold/ modules/ spec/)
+        - Platform (platform/ — auth, license, payments, AI)
+        - Generated plugin output
+        - Docs
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version / commit
+      description: Tag (v1.x) or commit hash. Factory and platform have separate versions.
+      placeholder: e.g. v1.0.5 or f5e3f8f
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you expected vs what actually happened.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction steps
+      description: The exact command(s) and the output. A minimal failing spec JSON for factory issues is extremely helpful.
+      render: shell
+      placeholder: |
+        # command
+        php tools/build.php spec/my-plugin.json
+        # output
+        FAIL: ...
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, PHP version (or "php-wasm runner"), Node version, Docker version.
+      placeholder: Linux / PHP 8.3 / Node 22 / Docker 27
+  - type: markdown
+    attributes:
+      value: >
+        **Security issue?** Do not paste credentials, license keys or stack
+        traces with secrets here. Follow [SECURITY.md](../SECURITY.md).

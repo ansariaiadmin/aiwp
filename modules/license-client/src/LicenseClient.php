@@ -71,6 +71,14 @@ final class LicenseClient implements ModuleInterface {
 				}
 			);
 		}
+
+		// Remove the cached update-check when the plugin is deleted.
+		add_action(
+			'{{PREFIX}}_uninstall',
+			static function (): void {
+				delete_option( '{{PREFIX}}_update_check_cache' );
+			}
+		);
 	}
 
 	public function is_active(): bool {
@@ -107,6 +115,7 @@ final class LicenseClient implements ModuleInterface {
 		$this->call( 'deactivate', [ 'license_key' => $key ] );
 
 		$this->store_license( $key, 'inactive' );
+		delete_option( '{{PREFIX}}_update_check_cache' );
 		do_action( '{{PREFIX}}_license_deactivated', $key );
 
 		$this->redirect_back();
@@ -123,6 +132,15 @@ final class LicenseClient implements ModuleInterface {
 		}
 
 		$result = $this->call( 'validate', [ 'license_key' => $key ] );
+
+		// A transport failure (server down, timeout, WP_Error) is not a
+		// verdict on the license: keep the previous status rather than
+		// switching Pro features off for the day because the request
+		// could not be delivered. Only a successful response that
+		// explicitly reports the key as not OK downgrades the status.
+		if ( isset( $result['_transport_error'] ) ) {
+			return;
+		}
 
 		$status = ! empty( $result['success'] ) ? 'active' : 'invalid';
 		$this->store_license( $key, $status );
@@ -173,15 +191,47 @@ final class LicenseClient implements ModuleInterface {
 				]
 			);
 
+			// Flagged so callers can tell "we could not reach the server"
+			// apart from "the server said the key is bad" — revalidate()
+			// must not downgrade an active license on a network blip.
 			return [
-				'success' => false,
-				'message' => $response->get_error_message(),
+				'success'           => false,
+				'message'           => $response->get_error_message(),
+				'_transport_error'  => true,
 			];
 		}
 
 		$body = json_decode( (string) wp_remote_retrieve_body( $response ), true );
 
 		return is_array( $body ) ? $body : [ 'success' => false ];
+	}
+
+	/**
+	 * Runs the update-check at most once per hour, caching the answer in a
+	 * plain option. The 'site_transient_update_plugins' filter can fire on
+	 * every admin screen load, and a slow or unreachable license server
+	 * must not add up to its full 15s timeout to each of those requests.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function update_check_cached(): array {
+		$cache_key = '{{PREFIX}}_update_check_cache';
+		$cached    = get_option( $cache_key, null );
+
+		if ( is_array( $cached ) && isset( $cached['at'], $cached['info'] ) && is_array( $cached['info'] )
+			&& ( time() - (int) $cached['at'] ) < HOUR_IN_SECONDS ) {
+			return $cached['info'];
+		}
+
+		$info = $this->call( 'update-check', [ 'license_key' => (string) Settings::get( 'license_key', '' ) ] );
+
+		// Only cache definitive answers; a transport failure is re-tried
+		// on the next filter run so a short outage self-heals.
+		if ( empty( $info['_transport_error'] ) ) {
+			update_option( $cache_key, [ 'at' => time(), 'info' => $info ], false );
+		}
+
+		return $info;
 	}
 
 	/**
@@ -196,7 +246,7 @@ final class LicenseClient implements ModuleInterface {
 			return $transient;
 		}
 
-		$info = $this->call( 'update-check', [ 'license_key' => (string) Settings::get( 'license_key', '' ) ] );
+		$info = $this->update_check_cached();
 
 		if ( empty( $info['success'] ) || empty( $info['new_version'] ) ) {
 			return $transient;

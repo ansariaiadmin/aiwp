@@ -47,6 +47,20 @@ final class BackupAlert implements ModuleInterface {
 			wp_schedule_event( time() + MINUTE_IN_SECONDS, 'daily', self::CRON_EVENT );
 		}
 		add_action( self::CRON_EVENT, array( $this, 'check' ) );
+
+		// The recurring event must not outlive the plugin.
+		add_action(
+			'{{PREFIX}}_deactivate',
+			static function (): void {
+				$timestamp = wp_next_scheduled( BackupAlert::CRON_EVENT );
+
+				if ( false !== $timestamp ) {
+					wp_unschedule_event( $timestamp, BackupAlert::CRON_EVENT );
+				}
+
+				wp_clear_scheduled_hook( BackupAlert::CRON_EVENT );
+			}
+		);
 	}
 
 	/**

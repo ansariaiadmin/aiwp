@@ -14,29 +14,43 @@ export function zodErrorMessage(error: ZodError): string {
 }
 
 /**
- * Extracts the real client IP for rate limiting / audit logging, trusting
- * only the reverse proxy (nginx) directly in front of this app —
- * everything else in the request is attacker-controlled.
+ * Extracts the real client IP for rate limiting / audit logging.
  *
- * SECURITY: by default does NOT trust first X-Forwarded-For entry (client-supplied
- * and spoofable). nginx sets X-Real-IP to $remote_addr and appends to XFF, so
- * last hop is the real IP. Additional headers (cf-connecting-ip, true-client-ip)
- * are checked for Cloudflare/Vercel setups. Falls back to 127.0.0.1 instead of
- * "unknown" to avoid global rate-limit bucket (fix for AUDIT §3.6).
- * Set TRUST_PROXY=true to trust first XFF entry when behind trusted L7 proxy.
+ * SECURITY MODEL — TRUST_PROXY is the single switch:
+ *
+ * - TRUST_PROXY unset/false (default): the app is assumed to be directly
+ *   reachable (which is how the documented docker-compose deployment
+ *   exposes port 3000). Every IP-carrying header in that situation is
+ *   client-forgable, so ALL of them are ignored and the socket peer is
+ *   used. An attacker therefore cannot shift their own rate-limit bucket
+ *   or their audit-trail IP by sending X-Real-IP etc.
+ *
+ * - TRUST_PROXY=true: a trusted L7 proxy (nginx/Cloudflare/Vercel) sits
+ *   directly in front and sets these headers from the real socket peer:
+ *   X-Real-IP (nginx: $remote_addr), cf-connecting-ip (Cloudflare),
+ *   true-client-ip / x-client-ip (CDN setups). X-Forwarded-For first
+ *   entry is the originating client.
+ *
+ * The non-proxy fallback returns "127.0.0.1" instead of "unknown" so
+ * direct-socket requests share one bucket rather than global
+ * (fix for AUDIT §3.6).
  */
 export function getClientIp(request: Request): string {
-  const realIp = request.headers.get("x-real-ip");
-  if (realIp && realIp.trim()) return realIp.trim();
+  const trustProxy = process.env.TRUST_PROXY === "true" || process.env.TRUST_PROXY === "1";
 
-  const cfIp = request.headers.get("cf-connecting-ip");
-  if (cfIp && cfIp.trim()) return cfIp.trim();
+  if (trustProxy) {
+    const realIp = request.headers.get("x-real-ip");
+    if (realIp && realIp.trim()) return realIp.trim();
 
-  const trueClientIp = request.headers.get("true-client-ip");
-  if (trueClientIp && trueClientIp.trim()) return trueClientIp.trim();
+    const cfIp = request.headers.get("cf-connecting-ip");
+    if (cfIp && cfIp.trim()) return cfIp.trim();
 
-  const xClientIp = request.headers.get("x-client-ip");
-  if (xClientIp && xClientIp.trim()) return xClientIp.trim();
+    const trueClientIp = request.headers.get("true-client-ip");
+    if (trueClientIp && trueClientIp.trim()) return trueClientIp.trim();
+
+    const xClientIp = request.headers.get("x-client-ip");
+    if (xClientIp && xClientIp.trim()) return xClientIp.trim();
+  }
 
   const forwardedFor = request.headers.get("x-forwarded-for");
   if (forwardedFor && forwardedFor.trim()) {
@@ -45,7 +59,6 @@ export function getClientIp(request: Request): string {
       .map((hop) => hop.trim())
       .filter(Boolean);
     if (hops.length > 0) {
-      const trustProxy = process.env.TRUST_PROXY === "true" || process.env.TRUST_PROXY === "1";
       return trustProxy ? hops[0] : hops[hops.length - 1];
     }
   }

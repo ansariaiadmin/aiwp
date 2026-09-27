@@ -48,7 +48,7 @@ echo ""
 
 # Update deps
 echo -e "${BLUE}[3/5] آپدیت وابستگی‌ها / Updating dependencies...${NC}"
-if [ "web" = "web" ] && [ -f docker-compose.yml ]; then
+if [ -f docker-compose.yml ]; then
   echo "docker compose pull"
   docker compose pull 2>&1 | tail -n 10 || true
 fi
@@ -63,14 +63,7 @@ if [ -f docker-compose.yml ]; then
   sleep 15
   docker compose ps
 else
-  if [ -f requirements.txt ]; then
-    source .venv/bin/activate 2>/dev/null || true
-    pip install -r requirements.txt --upgrade 2>&1 | tail -n 10
-  fi
-  if [ -f package.json ]; then
-    npm install 2>&1 | tail -n 10
-    npm run build 2>&1 | tail -n 10 || true
-  fi
+  echo -e "${YELLOW}docker-compose.yml پیدا نشد — این ریپو فقط با Docker اجرا می‌شود / No docker-compose.yml; this repo runs via Docker only${NC}"
 fi
 echo ""
 

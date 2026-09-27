@@ -47,6 +47,8 @@ final class Plugin {
 
 		$this->declare_woocommerce_compatibility();
 
+		$this->register_builtin_settings_fields();
+
 		$this->settings->register();
 		$this->assets->register();
 
@@ -57,6 +59,37 @@ final class Plugin {
 
 	public function load_textdomain(): void {
 		load_plugin_textdomain( '{{TEXT_DOMAIN}}', false, dirname( VPLUGIN_BASENAME ) . '/languages' );
+	}
+
+	/**
+	 * Settings that every generated plugin needs regardless of its spec.
+	 *
+	 * The "remove data on uninstall" opt-in is read by Activator::uninstall()
+	 * but was previously only reachable by writing the option into the
+	 * database by hand; surfacing it on the settings screen makes the
+	 * documented behaviour actually usable.
+	 */
+	private function register_builtin_settings_fields(): void {
+		add_filter(
+			'{{PREFIX}}_settings_fields',
+			static function ( array $fields ): array {
+				foreach ( $fields as $existing ) {
+					if ( 'remove_data_on_uninstall' === ( $existing['key'] ?? '' ) ) {
+						return $fields;
+					}
+				}
+
+				$fields[] = [
+					'key'     => 'remove_data_on_uninstall',
+					'type'    => 'checkbox',
+					'label'   => __( 'Remove plugin data on uninstall', '{{TEXT_DOMAIN}}' ),
+					'default' => false,
+					'tab'     => 'general',
+				];
+
+				return $fields;
+			}
+		);
 	}
 
 	/**

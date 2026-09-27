@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 Documentation questions
+    url: https://github.com/ansariaiadmin/aiwp/tree/main/docs
+    about: "How do I ...? — the documentation map is in the README; full guides live in docs/."
+  - name: 🛟 Persian community / support
+    url: https://t.me/ansariaiadmin
+    about: "Telegram — general support, non-technical onboarding (docs/USER_GUIDE_FA.md)."
+  - name: 🔒 Security vulnerability
+    url: https://github.com/ansariaiadmin/aiwp/blob/main/SECURITY.md
+    about: "Never report vulnerabilities in public issues — see SECURITY.md."

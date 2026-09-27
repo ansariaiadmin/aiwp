@@ -193,10 +193,16 @@ final class Settings {
 				break;
 
 			case 'password':
+				// Never echo a stored secret back into the DOM — not even
+				// to an admin viewing the page. Show a placeholder so the
+				// field is clearly populated without revealing the value;
+				// submitting the form without typing a new value keeps the
+				// old one (the settings sanitizer keeps unchanged fields).
+				$has_value = '' !== trim( (string) $value );
 				printf(
-					'<input type="password" name="%1$s" value="%2$s" class="regular-text" autocomplete="new-password" />',
+					'<input type="password" name="%1$s" value="" class="regular-text" autocomplete="new-password" placeholder="%2$s" />',
 					esc_attr( $name ),
-					esc_attr( (string) $value )
+					$has_value ? esc_attr__( '•••••••• — set, leave blank to keep', '{{TEXT_DOMAIN}}' ) : esc_attr__( 'Not set', '{{TEXT_DOMAIN}}' )
 				);
 				break;
 
@@ -237,6 +243,19 @@ final class Settings {
 
 		foreach ( self::fields() as $field ) {
 			$map[ $field['key'] ] = $field['type'];
+		}
+
+		// Password fields are rendered blank (the stored secret is never
+		// echoed back into the DOM — see render_field()), so an empty
+		// submission means "keep the stored value", not "clear it".
+		if ( $map ) {
+			$existing = (array) get_option( self::OPTION_GROUP, array() );
+
+			foreach ( $map as $key => $type ) {
+				if ( 'password' === $type && '' === trim( (string) ( $input[ $key ] ?? '' ) ) ) {
+					$input[ $key ] = (string) ( $existing[ $key ] ?? '' );
+				}
+			}
 		}
 
 		return Guard::sanitize_array( $input, $map );

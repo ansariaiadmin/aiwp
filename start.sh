@@ -6,6 +6,6 @@ if [ -f docker-compose.yml ]; then
   docker compose ps
   echo "✓ اجرا شد / Started - http://localhost:3000"
 else
-  echo "برای CLI: ./project-robots --help یا source .venv/bin/activate && python -m app.main"
-  if [ -f package.json ]; then npm run dev; fi
+  echo "برای شروع، docker-compose.yml باید در ریشه ریپو باشد / docker-compose.yml must be in the repo root."
+  exit 1
 fi

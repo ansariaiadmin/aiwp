@@ -56,11 +56,13 @@ final class DbTable implements ModuleInterface {
 
 		// dbDelta is strict about formatting: two spaces after PRIMARY KEY,
 		// KEY/INDEX lines, no backticks around the table name in CREATE TABLE.
+		// CURRENT_TIMESTAMP (not the MySQL-8-deprecated zero date) keeps the
+		// default valid under strict sql_mode on every supported server.
 		$statements[] = "CREATE TABLE {$table} (
 			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 			record_type VARCHAR(64) NOT NULL DEFAULT '',
 			payload LONGTEXT NOT NULL,
-			created_at DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
+			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY  (id),
 			KEY record_type (record_type),
 			KEY created_at (created_at)
@@ -125,8 +127,14 @@ final class DbTable implements ModuleInterface {
 	public static function paginate( string $record_type = '', int $per_page = 20, int $page = 1 ): array {
 		global $wpdb;
 
-		$table  = self::table_name();
-		$offset = max( 0, ( $page - 1 ) * $per_page );
+		$table = self::table_name();
+
+		// Cap the page size so an untrusted caller (glue code wiring a
+		// public REST route) cannot issue a single unbounded query.
+		$per_page = max( 1, min( $per_page, 200 ) );
+		$page     = max( 1, $page );
+
+		$offset = ( $page - 1 ) * $per_page;
 
 		if ( '' !== $record_type ) {
 			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $table is a fixed, non-user-controlled identifier.
