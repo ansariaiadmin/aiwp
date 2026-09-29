@@ -31,9 +31,27 @@
     "license-client"
   ],
   "options": [
-    { "key": "report_email", "type": "email", "label": "Report recipient", "default": "", "tab": "general" },
-    { "key": "low_stock_threshold", "type": "number", "label": "Low stock threshold", "default": 5, "tab": "general" },
-    { "key": "enable_daily_digest", "type": "checkbox", "label": "Send daily digest", "default": true, "tab": "general" }
+    {
+      "key": "report_email",
+      "type": "email",
+      "label": "Report recipient",
+      "default": "",
+      "tab": "general"
+    },
+    {
+      "key": "low_stock_threshold",
+      "type": "number",
+      "label": "Low stock threshold",
+      "default": 5,
+      "tab": "general"
+    },
+    {
+      "key": "enable_daily_digest",
+      "type": "checkbox",
+      "label": "Send daily digest",
+      "default": true,
+      "tab": "general"
+    }
   ],
   "features": [
     "Once a day, collect order count/revenue for the last 24h, low-stock product count, and failed-payment count, then email the report_email address using the email-notify module and store a CSV snapshot via csv-export.",

@@ -6,10 +6,10 @@
  * a standalone Next.js bundle and must not reach outside its own directory
  * to answer a request.
  *
- * `tools/tests/run-tests.php` asserts the generated plugin only ever uses ids
- * from this list, so a module added to the factory without being listed here
- * shows up as a test failure rather than as a model that keeps choosing a
- * module the composer then rejects.
+ * `tools/tests/run-tests.php` (section "AI catalogue sync") asserts this list
+ * matches every modules/*/module.json id exactly, so a module added to the
+ * factory without being listed here shows up as a test failure rather than as
+ * a model that keeps choosing a module the composer then rejects.
  */
 
 export interface CatalogueModule {
@@ -72,6 +72,18 @@ export const MODULE_CATALOGUE: readonly CatalogueModule[] = [
     id: "sms-gateway",
     summary:
       "Driver-based SMS sending with Kavenegar and MeliPayamak drivers. Keys are read from the platform's encrypted settings.",
+    requires: [],
+  },
+  {
+    id: "health-scan",
+    summary:
+      "WP-Health-style site checks (cron pending, debug flags, table prefix, object cache, PHP version) scored 0-100, cached in a non-autoloaded option, exposed via REST and an admin notice.",
+    requires: [],
+  },
+  {
+    id: "backup-alert",
+    summary:
+      "Watches the age of the latest backup (a timestamp option or file in uploads) and alerts the admin by email/SMS when it goes stale; integrates with email-notify and sms-gateway when present, degrades to an admin notice otherwise.",
     requires: [],
   },
   {

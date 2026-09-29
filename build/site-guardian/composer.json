@@ -1,0 +1,14 @@
+{
+    "name": "generated/site-guardian",
+    "description": "Real-time site health scoring, backup freshness alerts, scheduled email digests and a REST status API - zero configuration needed.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=8.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "AnsariAi\\\\SiteGuardian\\\\": "src/"
+        }
+    }
+}

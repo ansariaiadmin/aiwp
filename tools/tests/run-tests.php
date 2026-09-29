@@ -481,6 +481,118 @@ it('csv-export e2e: composed plugin contains CsvExport with correct prefix', fun
     assert_true(!str_contains($body, '{{PREFIX}}'), 'PREFIX leaked in CsvExport');
     rrmdir($outDir);
 });
+
+// -------------------------------------------------------------------------
+echo "\nBare-token safety\n";
+// -------------------------------------------------------------------------
+
+it('never rescans a replacement it just inserted (sequential-replace regression)', function () {
+    // The old sequential str_replace() implementation replaced VPLUGIN first,
+    // then — because the user's prefix "vplugin" upper-snakes back to
+    // "VPLUGIN" — re-matched its own output and destroyed the constant. A
+    // single-pass preg_replace_callback can never do that.
+    $result = Support::replaceBareTokens(
+        "if ( ! defined( 'VPLUGIN_VERSION' ) ) { vplugin_boot(); VendorPlugin\\x(); }",
+        ['vplugin_boot' => 'vplugin_boot', 'VendorPlugin' => 'Acme\\Probe', 'VPLUGIN' => 'VPLUGIN']
+    );
+    assert_same(
+        "if ( ! defined( 'VPLUGIN_VERSION' ) ) { vplugin_boot(); Acme\\Probe\\x(); }",
+        $result,
+        'self-referential token map corrupted the output'
+    );
+});
+
+it('keeps word boundaries so tokens cannot match inside longer identifiers', function () {
+    $result = Support::replaceBareTokens(
+        'my_vplugin_thing VPLUGINX vplugin_boot VPLUGIN',
+        ['vplugin_boot' => 'pb_boot', 'VPLUGIN' => 'PB']
+    );
+    assert_same('my_vplugin_thing VPLUGINX pb_boot PB', $result, 'token matched inside a longer identifier');
+});
+
+it('composes correctly when the spec prefix collides with a bare token', function () use ($specPath) {
+    // A pathological-but-legal spec: prefix "vplugin" makes PREFIX_UPPER equal
+    // the VPLUGIN dummy token itself. Every Settings::get()/constant call must
+    // still come out as VPLUGIN_<key>, and no placeholder may leak.
+    $spec = json_decode((string) file_get_contents($specPath), true, 512, JSON_THROW_ON_ERROR);
+    $spec['slug'] = 'aiwp-token-clash';
+    $spec['name'] = 'Token Clash';
+    $spec['namespace'] = 'AnsariAi\\TokenClash';
+    $spec['prefix'] = 'vplugin';
+    $spec['textDomain'] = 'aiwp-token-clash';
+
+    $tmpSpec = sys_get_temp_dir() . '/aiwp-clash-' . getmypid() . '.json';
+    file_put_contents($tmpSpec, json_encode($spec, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+    $outDir = wppf_compose($tmpSpec, sys_get_temp_dir() . '/aiwp-clash-' . getmypid());
+    @unlink($tmpSpec);
+
+    $settings = (string) file_get_contents($outDir . '/src/Settings.php');
+    assert_contains($settings, "'VPLUGIN_' . strtoupper", 'constant override name was mangled by the clash');
+    assert_true(!str_contains($settings, '{{'), 'placeholder leaked in clashing build');
+
+    $main = (string) file_get_contents($outDir . '/aiwp-token-clash.php');
+    assert_contains($main, 'vplugin_boot', 'boot function not named from the prefix');
+
+    wppf_check_syntax($outDir);
+    rrmdir($outDir);
+});
+
+// -------------------------------------------------------------------------
+echo "\nAI catalogue sync\n";
+// -------------------------------------------------------------------------
+
+// The platform's module-catalogue.ts is a hand-maintained mirror of the
+// modules/*/module.json files (the Next.js bundle must not reach outside its
+// own directory at runtime). This section is the drift detector that comment
+// always claimed existed but never did: ids must match exactly, one for one.
+it('platform AI catalogue lists every factory module and nothing else', function () use ($root) {
+    $catalogueFile = $root . '/platform/src/lib/ai/module-catalogue.ts';
+    assert_true(is_file($catalogueFile), 'module-catalogue.ts missing');
+
+    $contents = (string) file_get_contents($catalogueFile);
+    assert_true(
+        preg_match_all('/id:\s*"([a-z0-9-]+)"/', $contents, $m),
+        'no module ids found in the catalogue'
+    );
+    $catalogueIds = $m[1];
+
+    $factoryIds = array_keys(Support::discoverModules());
+    sort($catalogueIds);
+    sort($factoryIds);
+
+    assert_same($factoryIds, $catalogueIds, 'catalogue ids drifted from modules/*/module.json');
+});
+
+it('every bundled example spec composes with all its settings visible', function () use ($root) {
+    // Regression: modules read their options via Settings::get(), which only
+    // sanitizes keys declared in SETTINGS_FIELDS — an option missing from the
+    // spec was silently dropped on save. The examples now bake in every
+    // selected module's module.json options; assert that stays true.
+    foreach (glob($root . '/spec/examples/*.json') ?: [] as $examplePath) {
+        $spec = json_decode((string) file_get_contents($examplePath), true, 512, JSON_THROW_ON_ERROR);
+        $declared = array_column((array) ($spec['options'] ?? []), 'key');
+
+        foreach ((array) $spec['modules'] as $moduleId) {
+            $moduleJson = $root . '/modules/' . $moduleId . '/module.json';
+            if (!is_file($moduleJson)) {
+                continue;
+            }
+            foreach ((array) (json_decode((string) file_get_contents($moduleJson), true)['options'] ?? []) as $option) {
+                assert_true(
+                    in_array($option['key'], $declared, true),
+                    sprintf('%s: module "%s" option "%s" is not declared in the spec', basename($examplePath), $moduleId, $option['key'])
+                );
+            }
+        }
+
+        $outDir = wppf_compose($examplePath, sys_get_temp_dir() . '/aiwp-example-' . getmypid() . '-' . substr(md5($examplePath), 0, 6));
+        wppf_check_syntax($outDir);
+        rrmdir($outDir);
+    }
+
+    assert_true(true, '');
+});
+
 // -------------------------------------------------------------------------
 $colour = $failed === 0 ? "\033[32m" : "\033[31m";
 echo "\n{$colour}{$passed} passed, {$failed} failed\033[0m\n";

@@ -171,7 +171,25 @@ final class Support {
      * @param array<string,string> $map bare token => replacement value.
      */
     public static function replaceBareTokens( string $contents, array $map ): string {
-        return str_replace(array_keys($map), array_values($map), $contents);
+        if ([] === $map) {
+            return $contents;
+        }
+
+        // Single-pass alternation instead of sequential str_replace(). With
+        // sequential passes a replacement value that itself contains another
+        // token becomes collateral damage: prefix "vplugin" (upper-snake
+        // "VPLUGIN") turned every legitimate VPLUGIN constant reference into
+        // the user's own prefix. One preg_replace_callback pass rewrites each
+        // match exactly once and never rescans what it inserted — and the
+        // \b word boundaries keep tokens from matching inside longer
+        // identifiers.
+        $pattern = '/\b(' . implode('|', array_map(static fn ($token): string => preg_quote((string) $token, '/'), array_keys($map))) . ')\b/';
+
+        return (string) preg_replace_callback(
+            $pattern,
+            static fn (array $matches): string => (string) $map[ $matches[1] ],
+            $contents
+        );
     }
 
     /**

@@ -36,6 +36,38 @@
       "label": "Digest recipient",
       "default": "",
       "tab": "reports"
+    },
+    {
+      "key": "scan_interval_hours",
+      "type": "number",
+      "label": "Scan interval (hours)",
+      "default": "24",
+      "choices": [],
+      "tab": "health"
+    },
+    {
+      "key": "backup_alert_email",
+      "type": "email",
+      "label": "Alert email",
+      "default": "",
+      "choices": [],
+      "tab": "backup"
+    },
+    {
+      "key": "backup_max_age_days",
+      "type": "number",
+      "label": "Max backup age (days)",
+      "default": "7",
+      "choices": [],
+      "tab": "backup"
+    },
+    {
+      "key": "backup_time_option",
+      "type": "text",
+      "label": "Option name holding last-backup Unix timestamp",
+      "default": "{{PREFIX}}_last_backup_at",
+      "choices": [],
+      "tab": "backup"
     }
   ],
   "features": [
